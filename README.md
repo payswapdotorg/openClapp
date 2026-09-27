@@ -1,3 +1,14 @@
+# openClapp
+
+**CLAPP is the application-intelligence layer built on this OpenMuse runtime.**
+
+This repository is the implementation source of truth for the CLAPP roadmap. Start with [CLAPP.md](CLAPP.md) and [the final tech-lead handoff](docs/clapp/FINAL_HANDOFF.md).
+
+CLAPP reuses OpenMuse for durable tasks, browser/computer execution, files, approvals, authentication, and the web/mobile shell. CLAPP adds application reconstruction, Behavioral IR, synthesis, differential verification, repair, and a continuously learning package library.
+
+> The inherited OpenMuse documentation below describes the substrate. CLAPP-specific architecture and work instructions live under [docs/clapp](docs/clapp/README.md).
+
+
   <div align="center">
 
 # OpenMuse
