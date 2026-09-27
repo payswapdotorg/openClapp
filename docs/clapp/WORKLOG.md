@@ -85,3 +85,15 @@ New risks: workspace/lockfile registration was edited manually and must be valid
 Contract/ADR changes: ADR-001 OpenMuse runtime substrate; ADR-002 three-worker boundaries; canonical CLAPP contract v0.1 declared for TL review/freeze.
 
 Next unblocked work: clean-checkout gate, then W1-001 + W2-001 + W3-001 in parallel.
+
+## 2026-09-27 — Wave 1 Lane 1 (CLAPP-W1-001) integrated
+
+Date: 2026-09-27
+Phase: Phase 1 (durable CLAPP task and runtime adapter) — lane 1 of wave 1.
+Work items: CLAPP-W1-001 — @clapp/runtime-openmuse durable OpenMuse runtime adapter.
+Integrated commits: b7a170e (worker, single commit on base bd3ac43, verified byte-identical via git bundle sha256 316bb1af…; fetched from staged delivery) → merge 76df865.
+Tests: worker env 214/213/1 (1 pre-existing file-level browser artifact); TL env base 194/192/2 → branch 203/201/2 (same two pre-existing file-level artifacts: browser.test.ts, oauth.test.ts); +9 new tests all passing; typecheck 0; lint 0; build:server OK; pnpm-lock.yaml unchanged.
+Acceptance: all 7 required named tests + 1 worker-added invalid-input test PASS (durable stage run; restart reconcile without re-execution; pause/cancel clean state; bind validation fail-closed; content-addressed artifact roundtrip; unavailable evidence stays unavailable; non-CLAPP delegation; invalid input fails). Per-file sha256 declaration verified against the bundle tree — 6/6 match. Constitution verified: only packages/clapp-runtime-openmuse/** + tests/clapp-w1-001-runtime.test.ts touched (+1922/−33).
+New risks: production wiring of createClappTaskHandler into the AgentService worker chain is the TL seam (proven against a real TaskWorker over a real store, not a re-wired createApp); artifacts are PDF-only via the OpenMuse Files service (typed error otherwise); ApprovalProvider fails closed pending an approval-capable handle; owner discovery scans tasks by reconstructionId (multi-owner resolves to most recent). StageRecord state key "clappStage" + "reconciled"/"cancelled" event vocabulary are W1 conventions to standardize in W1-004+.
+Contract/ADR changes: none applied (contracts frozen). Worker proposed three revisions for TL review at next freeze: owner-scoped provider inputs / for(owner) factory; ArtifactProvider.put first-class source/classification/targetId + expected-output paths for ExecutionProvider.run; an approvals-capable handle or approval id vocabulary. Recorded, not enacted — v0.1 stays frozen for wave 1.
+Next unblocked work: CLAPP-W1-002 (browser observation adapter — runs against this base), CLAPP-W1-003 (candidate workspace execution), CLAPP-W1-004 (run artifact/recovery semantics).
