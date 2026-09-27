@@ -1,4 +1,5 @@
 packages:
+  - packages/*
   - apps/mobile
   - apps/worker
 allowBuilds:
