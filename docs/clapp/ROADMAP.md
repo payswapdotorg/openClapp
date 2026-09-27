@@ -19,7 +19,7 @@ openClapp
 │
 ├── 🟡 CLAPP foundation
 │   ├── ✅ frozen contracts (v0.1, TL-0 verified)
-│   ├── ✅ OpenMuse runtime adapter (W1-001, wave 1)
+│   ├── ✅ OpenMuse runtime adapter (W1-001, wave 1; execution seam W1-003, wave 2)
 │   ├── ⬜ CLAPP task kind/state/events
 │   └── ⬜ CLAPP repositories
 │

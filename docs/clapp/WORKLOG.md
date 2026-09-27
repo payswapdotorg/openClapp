@@ -121,3 +121,15 @@ Acceptance: 8/8 required named tests PASS (determinism incl. reversed key-insert
 New risks: the plan's concrete record shapes (PlanRoute/PlanComponent/keyed entries) are package-level decisions W3-002 must match or the TL relaxes at integration; routes are journey-addressable only (the frozen IR has no navigation section); createSynthesisEngine().plan is now wired to the real planner (the one scaffold behavior change, flagged by the worker).
 Contract/ADR changes: none enacted. Worker proposed two field-level revisions for the next freeze (typed plan record shapes; a BehavioralIr navigation/screen-graph section). Recorded — v0.1 stays frozen through wave 1.
 Next unblocked work: W3-002 (web candidate generator), then W3-003; wave 2 lanes W1-002/W1-003/W2-005 dispatch against this integrated base.
+
+## 2026-09-27 — Wave 2 Lane 3 (CLAPP-W1-003) integrated
+
+Date: 2026-09-27
+Phase: Phase 1 completion (candidate workspace execution seam) — wave 2 lane 3, executed by the W3-lane worker under the documented TL handoff.
+Work items: CLAPP-W1-003 — candidate workspace execution provider extending @clapp/runtime-openmuse.
+Integrated commits: ce0eea7 (worker, single commit on base 7350970; bundle sha256 b9bbcd72… verified, 6/6 per-file sha256s match) → merge.
+Tests: worker sandbox 239/238/1 (their baseline 228/227/1 at 7350970 — the single failure the documented browser file-level artifact); TL env: 227/225/2 — the same two pre-existing file-level artifacts (browser, oauth); W1-003 suite 10/10 standalone (9 required + 1 worker-added); wave-1 runtime suite 8/8 unchanged on the extended package (backward compatibility PROVEN, including the no-options constructor throwing typed not-configured only at call time); typecheck 0; lint 0; build:server OK; lockfile unchanged.
+Acceptance: all required named tests PASS (result-not-exception on failure; network modes fail closed; timeout ceiling before start; idempotent runs return the same receipt; workspace lifecycle with tombstoned ids never reused; chunked seeding under 256KB with sha256-verified reassembly; abort surfaces interrupted state honestly; wave-1 surface unchanged; restart-safe discovery by path scheme). Constitution verified: only packages/clapp-runtime-openmuse/** + tests/clapp-w1-003-execution.test.ts touched (+2410/−28).
+New risks: harvest is PDF-only through the v0.1 files service (per-path honest failure reports); run().artifacts stays [] (harvest is an explicit seam call); workspace registry is enrichment-only (discovery works without it).
+Contract/ADR changes: none enacted. Worker followed the frozen contracts; the seam's concrete shapes (CandidateExecutionOptions, runCandidateBuild, seedWorkspaceFile, discoverWorkspaces, candidateSeamOf) are package-level surface for W3-002 to compose.
+Next unblocked work: W3-002 (web candidate generator — the seam's primary consumer).
