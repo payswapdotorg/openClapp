@@ -28,7 +28,7 @@ openClapp
 │   ├── ⬜ observation/evidence
 │   ├── ⬜ exploration
 │   ├── ✅ Behavioral IR (W2-001, wave 1)
-│   ├── ⬜ synthesis plan
+│   ├── ✅ synthesis plan (W3-001, wave 1)
 │   ├── ⬜ candidate generation
 │   ├── ⬜ paired verification
 │   └── ⬜ bounded repair
