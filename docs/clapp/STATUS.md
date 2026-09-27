@@ -4,110 +4,112 @@ Audit date: 2026-09-27
 
 Repository: `payswapdotorg/openClapp`
 
-Base repository: OpenMuse clone on branch `main`.
+Base OpenMuse snapshot audited: `34b15bc80340e582fb8c25573646cfb0bbc5184d`.
 
-Verified source snapshot: commit `34b15bc80340e582fb8c25573646cfb0bbc5184d`.
+## Verified OpenMuse substrate
 
-## What already exists and should be reused
-
-### Durable orchestration
-OpenMuse already has:
-- durable AgentTask records;
-- SQL-backed lease acquisition;
-- up to three concurrent eligible tasks per tick;
-- heartbeats;
-- interruption recovery;
-- checkpointing;
-- run records;
-- pause/resume/cancel/retry;
-- stored action review;
-- background maintenance.
-
-Primary source:
-`apps/server/src/engine/worker.ts`
-`apps/server/src/engine/service.ts`
-
-### Browser substrate
-OpenMuse already has:
-- a server-side BrowserService;
-- a token-protected browser worker;
+The inherited repository already provides:
+- durable AgentService and TaskWorker;
+- SQL lease/checkpoint/recovery behavior;
+- browser session service and Playwright worker;
 - persistent Chromium sessions;
-- screenshots;
-- read/navigation/input;
-- downloads;
-- live browser preview/console.
+- Linux Docker computer/workspace;
+- generic files/artifacts;
+- owner/auth boundary;
+- OpenMuse web/iOS/Android shell;
+- CI/test infrastructure.
 
-Primary source:
-`apps/server/src/browser.ts`
-`apps/worker/src/browser.ts`
+Primary source locations:
+- `apps/server/src/engine/worker.ts`
+- `apps/server/src/engine/service.ts`
+- `apps/server/src/browser.ts`
+- `apps/worker/src/browser.ts`
+- `apps/server/src/computer.ts`
+- `apps/computer`
+- `apps/mobile`
+- `packages/domain`
 
-### Linux computer
-OpenMuse already has:
-- Docker-backed Linux computer;
-- bounded commands;
-- persistent `/workspace`;
-- files;
-- isolation tests.
+## CLAPP scaffold now present
 
-Primary source:
-`apps/server/src/computer.ts`
-`apps/computer`
+Repository-level CLAPP architecture has been added.
 
-### Product surfaces
-OpenMuse already has:
-- web/mobile UI;
-- chat;
-- tasks/activity;
-- browser/computer views;
-- files;
-- approvals;
-- artifacts.
+Present:
+- `AGENTS.md`
+- `CLAPP.md`
+- `docs/clapp/*`
+- `schemas/clapp/*`
+- `packages/clapp-contracts`
+- `packages/clapp-runtime-openmuse`
+- `packages/clapp-observation`
+- `packages/clapp-intelligence`
+- `packages/clapp-synthesis`
 
-Primary source:
-`apps/mobile`
+The canonical CLAPP TypeScript contract is currently declared in:
+`packages/clapp-contracts/src/index.ts`
 
-### Shared domain/runtime
-OpenMuse already has:
-- Hono server;
-- PGlite/PostgreSQL store abstraction;
-- auth/owner boundary;
-- CopilotKit/AG-UI runtime;
-- existing tests.
+The runtime/observation/intelligence/synthesis packages are intentionally scaffolds. Their TODO/throwing paths are expected until workers implement the corresponding work items.
 
-## What is missing for CLAPP
+## Workspace state
 
-The following are not present in the current clone as a CLAPP system:
+`pnpm-workspace.yaml` now includes:
+```
+packages/*
+apps/mobile
+apps/worker
+```
 
-- target authorization model;
-- CLAPP evidence bundle;
-- Behavioral IR;
-- exploration engine;
-- app archetype classification;
-- synthesis plan;
-- independent code generation pipeline;
-- paired differential verification;
-- CLAPP repair engine;
-- reusable package registry;
-- package retrieval/composition;
-- failure memory;
-- package promotion;
-- learning benchmarks;
-- CLAPP-native task kinds/routes/UI.
+The lockfile contains importer entries for all CLAPP packages.
 
-## Important substrate limitation
+The next clean-checkout install is the authoritative test that the manually added workspace/lockfile seam is accepted by pnpm.
 
-The current OpenMuse Linux computer is a Linux container, not a general desktop VM. Do not describe it as a Windows/macOS/iOS/Android execution environment.
+## CI status
 
-The current browser worker is an execution provider; CLAPP must own observation semantics and evidence provenance.
+At audit time GitHub returned zero workflow runs for this repository.
 
-## Current contract decision
+Therefore:
+- do not claim the new CLAPP scaffold is CI-green yet;
+- first TL task is clean-checkout install/typecheck/lint/test validation;
+- any lockfile or TypeScript failure must be fixed before functional worker work is accepted.
 
-No CLAPP feature should modify the OpenMuse durable task semantics directly until the CLAPP task payload/state/event contracts in `packages/clapp-contracts` are frozen.
+## Functional CLAPP status
+
+Not yet implemented:
+- runtime adapter behavior;
+- target authorization persistence;
+- browser evidence capture;
+- Behavioral IR implementation;
+- exploration;
+- synthesis;
+- differential verification;
+- repair;
+- package registry/retrieval;
+- continuous learning;
+- CLAPP-specific UI/routes.
 
 ## Current milestone
 
-The immediate milestone is **CLAPP-WEB-M0**:
+`CLAPP-WEB-M0`:
 
-> From an authorized web target, create a durable CLAPP reconstruction task that can observe and archive evidence, build a Behavioral IR, synthesize a candidate, compare reference and candidate, and expose the run through the existing OpenMuse activity/task UI.
+Authorized web target
+-> durable reconstruction task
+-> evidence
+-> exploration
+-> Behavioral IR
+-> synthesis
+-> reference/candidate parity
+-> bounded repair
+-> human-reviewable report.
 
-The package-learning loop becomes the next milestone once this vertical slice is green.
+## Immediate TL gate
+
+Before dispatching functional work:
+1. run clean install;
+2. run typecheck;
+3. run lint;
+4. run existing tests;
+5. run server build;
+6. verify browser/computer tests still pass;
+7. verify CLAPP packages are resolved as workspace packages;
+8. freeze/revise contracts if compilation reveals missing fields.
+
+Only then dispatch W1-001, W2-001 and W3-001.
