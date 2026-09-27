@@ -27,7 +27,7 @@ openClapp
 │   ├── ⬜ target authorization
 │   ├── ⬜ observation/evidence
 │   ├── ⬜ exploration
-│   ├── ⬜ Behavioral IR
+│   ├── ✅ Behavioral IR (W2-001, wave 1)
 │   ├── ⬜ synthesis plan
 │   ├── ⬜ candidate generation
 │   ├── ⬜ paired verification
