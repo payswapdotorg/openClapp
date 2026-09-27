@@ -1,0 +1,21 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"CLAPP Behavioral IR",
+  "type":"object",
+  "required":["schemaVersion","application","evidence","journeys"],
+  "properties":{
+    "schemaVersion":{"type":"string"},
+    "application":{"type":"object","required":["id","name","platform"],"properties":{"id":{"type":"string"},"name":{"type":"string"},"platform":{"type":"string"},"entrypoints":{"type":"array","items":{"type":"string"}}},"additionalProperties":true},
+    "evidence":{"type":"array","items":{"type":"object","required":["id","kind","sha256","classification"],"properties":{"id":{"type":"string"},"kind":{"type":"string"},"sha256":{"type":"string"},"classification":{"enum":["observed","derived","inferred","assumed","unavailable"]},"source":{"type":"string"},"capturedAt":{"type":"string"},"targetId":{"type":"string"},"runId":{"type":"string"}},"additionalProperties":true}},
+    "journeys":{"type":"array","items":{"type":"object","required":["id","steps"],"properties":{"id":{"type":"string"},"steps":{"type":"array","items":{"type":"object"}}},"additionalProperties":true}},
+    "screens":{"type":"array","items":{"type":"object"}},
+    "components":{"type":"array","items":{"type":"object"}},
+    "state":{"type":"object"},
+    "data":{"type":"object"},
+    "api":{"type":"object"},
+    "integrations":{"type":"array","items":{"type":"object"}},
+    "assumptions":{"type":"array","items":{"type":"object"}},
+    "constraints":{"type":"array","items":{"type":"object"}}
+  },
+  "additionalProperties":false
+}
