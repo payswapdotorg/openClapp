@@ -1,3 +1,53 @@
+# openClapp Roadmap
+
+The inherited OpenMuse roadmap remains below this overlay. CLAPP work is tracked in `docs/clapp/ROADMAP.md`.
+
+## CLAPP program
+
+```
+OpenMuse substrate ✅
+       |
+       v
+Contracts + runtime adapter 🟡
+       |
+       +----------------+----------------+
+       |                |                |
+       v                v                v
+Observation         Intelligence      Synthesis
+       |                |                |
+       +----------------+----------------+
+                        |
+                        v
+                  Web reconstruction
+                        |
+                        v
+               Differential verification
+                        |
+                        v
+                     Repair
+                        |
+                        v
+                 Package learning
+                        |
+                        v
+              Application archetypes
+                        |
+                        v
+                Native adapters
+```
+
+## Repository source of truth
+
+See:
+- `CLAPP.md`
+- `AGENTS.md`
+- `docs/clapp/FINAL_HANDOFF.md`
+- `docs/clapp/TECH_LEAD_START.md`
+- `docs/clapp/ROADMAP.md`
+- `docs/clapp/WORK_ITEMS.md`
+
+---
+
 # OpenMuse roadmap
 
 The release is a personal-agent alpha: delegate a job, inspect its plan, supply missing information, review an action, and return to a saved result. The [reference inventory](docs/FEATURES.md) is broader than this release.
@@ -30,3 +80,4 @@ The release is a personal-agent alpha: delegate a job, inspect its plan, supply 
 - [ ] Multi-user authentication, deployment hardening, retention/export controls, and operational recovery.
 
 Each item needs its own authentication, capability boundaries, failure behavior, and end-to-end evidence before it becomes a supported feature. No dates or third-party API access are promised.
+
