@@ -15,7 +15,10 @@ import { ClappRuntimeError } from "./errors.ts";
  *   `observe`; the `preview` capability is optional and degrades to an
  *   `unavailable` evidence entry.
  * - `computer` — execution and workspaces. Present handles must provide
- *   `execute` and `mkdir`.
+ *   `execute` and `mkdir`. The W1-003 candidate seam additionally uses the
+ *   optional `read`, `write` and `list` capabilities: they are duck-typed at
+ *   bind time when `CandidateExecutionOptions` wires the seam (typed error
+ *   naming the missing capability) and at call time otherwise.
  * - `files` — artifact storage. Present handles must provide `import` and
  *   `bytes`.
  * - `agent` — approval surface. Present handles must provide `notify`; an
@@ -64,7 +67,23 @@ export interface ClappComputerReceipt {
   truncated?: boolean;
 }
 
-/** Structural subset of the OpenMuse computer service. */
+/** Structural subset of the substrate's directory listing result. */
+export interface ClappComputerDirectory {
+  path: string;
+  entries: {
+    name: string;
+    path: string;
+    type: "file" | "directory" | "symlink";
+    size: number;
+  }[];
+}
+
+/**
+ * Structural subset of the OpenMuse computer service. `read`, `write` and
+ * `list` are optional capabilities used by the W1-003 candidate seam; a
+ * handle that lacks them still binds for every Wave 1 behavior and the seam
+ * fails closed with a typed error when used.
+ */
 export interface ClappComputerHandle {
   /** Required by the execution provider: run a sandboxed bash command. */
   execute(
@@ -74,6 +93,12 @@ export interface ClappComputerHandle {
   ): Promise<ClappComputerReceipt>;
   /** Required by the workspaces provider: create a sandbox directory. */
   mkdir(owner: string, path: string): Promise<{ path: string }>;
+  /** Optional (W1-003 seam): read a workspace text file (256 KB substrate limit). */
+  read?(owner: string, path: string): Promise<{ path: string; text: string }>;
+  /** Optional (W1-003 seam): write a workspace text file (256 KB substrate limit). */
+  write?(owner: string, path: string, text: string): Promise<{ path: string }>;
+  /** Optional (W1-003 seam): list a workspace directory (bounded by the substrate). */
+  list?(owner: string, path: string): Promise<ClappComputerDirectory>;
 }
 
 /** Structural subset of the OpenMuse files service (PDF document store). */
@@ -108,7 +133,13 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function requireCapabilities(
+/**
+ * Validates one untyped handle against a list of required capability names.
+ * Fails closed with a typed error naming the handle (provider) and the first
+ * missing capability. Shared by the Wave 1 handle binding and the W1-003
+ * candidate seam binding.
+ */
+export function requireCapabilities(
   handle: unknown,
   handleName: string,
   provider: string,
