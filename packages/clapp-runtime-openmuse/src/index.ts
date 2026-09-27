@@ -29,5 +29,7 @@ export interface OpenMuseRuntimeDependencies {
 }
 
 export function createOpenMuseRuntime(_deps: OpenMuseRuntimeDependencies): OpenMuseRuntime {
-  throw new Error("CLAPP runtime adapter not implemented yet; see docs/clapp/IMPLEMENTATION_PLAN.md");
+  throw new Error(
+    "CLAPP runtime adapter not implemented yet; see docs/clapp/IMPLEMENTATION_PLAN.md",
+  );
 }

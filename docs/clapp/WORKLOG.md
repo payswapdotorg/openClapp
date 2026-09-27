@@ -1,5 +1,34 @@
 # CLAPP Worklog
 
+## 2026-09-27 — TL-0 verification wave: gates run, format seam fixed, contracts frozen v0.1
+
+Baseline: `bae700938c6e651d115fc1e921771c0fc2b04b6b` (handoff head).
+Base reference worktree: `34b15bc80340e582fb8c25573646cfb0bbc5184d`.
+
+Verification environment: pnpm 11.19.0, Node v24.21.0, clean checkout.
+
+Gate results (details in `docs/clapp/STATUS.md`):
+- clean `pnpm install --frozen-lockfile`: PASS — the manually added
+  workspace/lockfile seam is accepted by pnpm;
+- CLAPP packages resolve as workspace packages (`workspace:*` symlinks): PASS;
+- typecheck (root + mobile): PASS, zero errors — contracts compile as declared;
+- lint: 13 errors, all format-only in new CLAPP files; fixed by reformatting
+  12 files (schemas/package JSON verified semantically identical; no substrate
+  file touched); lint now PASS;
+- `pnpm test`: 192/189/3, identical failure set to the base snapshot
+  (pre-existing environment artifacts; zero overlay regressions);
+- `pnpm build:server`: PASS;
+- `pnpm test:browser`: PASS after provisioning Playwright chromium r1234
+  (pinned by playwright 1.62.1);
+- `pnpm test:computer`: not runnable in the TL environment (no Docker);
+  deferred to a Docker-capable environment; mocked computer suite passes.
+
+Decisions:
+- contracts frozen at **v0.1** (typecheck surfaced no missing fields);
+- W1-001 / W2-001 / W3-001 cleared for concurrent dispatch against the frozen
+  contracts;
+- computer smoke remains an open acceptance item for M0 (environment-dep).
+
 ## 2026-09-27 — openClapp substrate audit and CLAPP architecture handoff
 
 Repository: `payswapdotorg/openClapp`

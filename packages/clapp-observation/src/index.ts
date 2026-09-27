@@ -1,7 +1,11 @@
-import type { EvidenceBundle, ReconstructionSpec, ObservationProvider } from "@clapp/contracts";
+import type { EvidenceBundle, ObservationProvider, ReconstructionSpec } from "@clapp/contracts";
 
 export interface ObservationEngine {
-  capture(spec: ReconstructionSpec, provider: ObservationProvider, signal?: AbortSignal): Promise<EvidenceBundle>;
+  capture(
+    spec: ReconstructionSpec,
+    provider: ObservationProvider,
+    signal?: AbortSignal,
+  ): Promise<EvidenceBundle>;
 }
 
 export function createObservationEngine(): ObservationEngine {

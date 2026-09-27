@@ -5,13 +5,15 @@ export interface BehavioralModeler {
 }
 
 export interface PackageRetriever {
-  retrieve(input:{model:BehavioralIr;targetStack:string}): Promise<string[]>;
+  retrieve(input: { model: BehavioralIr; targetStack: string }): Promise<string[]>;
 }
 
 export function createIntelligenceEngine() {
   return {
     model(_spec: ReconstructionSpec, _evidence: EvidenceBundle): Promise<BehavioralIr> {
-      throw new Error("Behavioral modeler not implemented yet; see docs/clapp/IMPLEMENTATION_PLAN.md");
+      throw new Error(
+        "Behavioral modeler not implemented yet; see docs/clapp/IMPLEMENTATION_PLAN.md",
+      );
     },
   };
 }

@@ -1,20 +1,30 @@
 {
-  "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "title":"CLAPP Verified Package",
-  "type":"object",
-  "required":["schemaVersion","package"],
-  "properties":{
-    "schemaVersion":{"type":"string"},
-    "package":{"type":"object","required":["id","version","category","purpose","interface","tests","provenance"],"properties":{
-      "id":{"type":"string"},"version":{"type":"string"},"category":{"type":"string"},"purpose":{"type":"string"},
-      "interface":{"type":"object"},"capabilities":{"type":"array","items":{"type":"string"}},
-      "constraints":{"type":"array","items":{"type":"string"}},
-      "dependencies":{"type":"array","items":{"type":"string"}},
-      "supportedTargets":{"type":"array","items":{"type":"string"}},
-      "tests":{"type":"array","items":{"type":"object"}},
-      "benchmark":{"type":"object"},"failureModes":{"type":"array","items":{"type":"object"}},
-      "provenance":{"type":"object"}
-    },"additionalProperties":true}
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CLAPP Verified Package",
+  "type": "object",
+  "required": ["schemaVersion", "package"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "package": {
+      "type": "object",
+      "required": ["id", "version", "category", "purpose", "interface", "tests", "provenance"],
+      "properties": {
+        "id": { "type": "string" },
+        "version": { "type": "string" },
+        "category": { "type": "string" },
+        "purpose": { "type": "string" },
+        "interface": { "type": "object" },
+        "capabilities": { "type": "array", "items": { "type": "string" } },
+        "constraints": { "type": "array", "items": { "type": "string" } },
+        "dependencies": { "type": "array", "items": { "type": "string" } },
+        "supportedTargets": { "type": "array", "items": { "type": "string" } },
+        "tests": { "type": "array", "items": { "type": "object" } },
+        "benchmark": { "type": "object" },
+        "failureModes": { "type": "array", "items": { "type": "object" } },
+        "provenance": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
   },
-  "additionalProperties":false
+  "additionalProperties": false
 }

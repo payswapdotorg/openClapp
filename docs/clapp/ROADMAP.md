@@ -18,7 +18,7 @@ openClapp
 │   └── ✅ CI / test infrastructure
 │
 ├── 🟡 CLAPP foundation
-│   ├── 🟡 frozen contracts
+│   ├── ✅ frozen contracts (v0.1, TL-0 verified)
 │   ├── 🟡 OpenMuse runtime adapter
 │   ├── ⬜ CLAPP task kind/state/events
 │   └── ⬜ CLAPP repositories
