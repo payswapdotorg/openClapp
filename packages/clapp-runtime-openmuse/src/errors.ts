@@ -41,6 +41,24 @@ export class ClappHandleNotProvidedError extends ClappRuntimeError {
   }
 }
 
+/**
+ * Raised when the candidate workspace execution seam (W1-003) is used without
+ * the `CandidateExecutionOptions` wiring. The runtime still constructs without
+ * the options — every Wave 1 provider and behavior stays intact — but the
+ * candidate-build orchestration surface fails closed with this typed error at
+ * call time instead of silently degrading to a guess.
+ */
+export class ClappNotConfiguredError extends ClappRuntimeError {
+  constructor(provider: string, capability: string) {
+    super(
+      provider,
+      capability,
+      `the candidate execution options were not provided to createOpenMuseRuntime, so the ${provider} provider cannot serve "${capability}"; pass CandidateExecutionOptions to wire the candidate seam`,
+    );
+    this.name = "ClappNotConfiguredError";
+  }
+}
+
 /** Renders an unknown thrown value without echoing secrets or stack traces. */
 export function describeError(error: unknown): string {
   if (error instanceof Error) return error.message;

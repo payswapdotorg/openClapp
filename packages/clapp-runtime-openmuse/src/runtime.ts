@@ -11,7 +11,32 @@ import type {
   TaskProvider,
   WorkspaceProvider,
 } from "@clapp/contracts";
-import { ClappHandleNotProvidedError, ClappRuntimeError, describeError } from "./errors.ts";
+import type {
+  CandidateBuildStepResult,
+  CandidateExecutionOptions,
+  CandidateExecutionProvider,
+  CandidateHarvestFailure,
+  CandidateSeamContext,
+  CandidateWorkspaceProvider,
+} from "./candidate.ts";
+import {
+  bindCandidateCapabilities,
+  candidateCreateWorkspace,
+  candidateDestroyWorkspace,
+  candidateDiscoverWorkspaces,
+  candidateHarvestWorkspaceArtifacts,
+  candidateListWorkspaceFiles,
+  candidateSeedFile,
+  requireWorkspaceRelativePath,
+  resolveCandidateOptions,
+  SUBSTRATE_COMMAND_LIMIT_CHARS,
+} from "./candidate.ts";
+import {
+  ClappHandleNotProvidedError,
+  ClappNotConfiguredError,
+  ClappRuntimeError,
+  describeError,
+} from "./errors.ts";
 import type { BoundHandles, ClappBrowserSessionHandle, ClappComputerHandle } from "./handles.ts";
 import { bindHandles } from "./handles.ts";
 
@@ -471,16 +496,54 @@ function makeObservationProvider(bound: BoundHandles): ObservationProvider {
   };
 }
 
-function makeExecutionProvider(bound: BoundHandles): ExecutionProvider {
-  return {
+/**
+ * Derives the deterministic idempotency key for one execution-provider run.
+ * Two identical run inputs therefore map to the same durable substrate
+ * receipt: a repeated or recovered run replays the recorded outcome instead
+ * of re-executing the command.
+ */
+function derivedExecutionKey(input: {
+  reconstructionId: string;
+  cwd: string;
+  command: string;
+  timeoutMs: number;
+  network: string;
+}): string {
+  return createHash("sha256")
+    .update(
+      JSON.stringify({
+        purpose: "clapp-execution",
+        reconstructionId: input.reconstructionId,
+        cwd: input.cwd,
+        command: input.command,
+        timeoutMs: input.timeoutMs,
+        network: input.network,
+      }),
+    )
+    .digest("hex");
+}
+
+function makeExecutionProvider(
+  bound: BoundHandles,
+  candidate?: CandidateSeamContext,
+): CandidateExecutionProvider {
+  const provider: CandidateExecutionProvider = {
     /**
      * Runs a command in the OpenMuse sandbox computer, honoring the exact
      * input semantics that the sandbox can express and failing closed on the
      * ones it cannot: the sandbox is network-isolated ("deny" only) and kills
      * every command after 30 seconds. Non-zero exit codes (including the
      * 124 timeout and 137 interruption conventions) are results, not
-     * exceptions. Produced-file reporting is empty in W1 because the computer
-     * receipt does not enumerate per-command file outputs.
+     * exceptions.
+     *
+     * With the candidate seam wired (W1-003), the run additionally carries
+     * real ComputerService semantics: the idempotency key is derived
+     * deterministically from the input so repeated or recovered runs replay
+     * the same durable receipt, substrate truncation is surfaced as an honest
+     * note instead of silent loss, an in-flight replay is never reported as
+     * success, and the substrate's own command/cwd bounds are validated with
+     * typed errors before the command starts. Without the candidate options
+     * the provider keeps the Wave 1 first-cut behavior byte-for-byte.
      */
     async run(input, signal) {
       if (!bound.computer) throw new ClappHandleNotProvidedError("execution", "computer");
@@ -512,6 +575,20 @@ function makeExecutionProvider(bound: BoundHandles): ExecutionProvider {
           "timeoutMs",
           `the OpenMuse computer kills commands after ${COMPUTER_COMMAND_LIMIT_MS}ms and cannot honor timeoutMs ${timeoutMs}ms`,
         );
+      if (candidate) {
+        if (command.length > SUBSTRATE_COMMAND_LIMIT_CHARS)
+          throw new ClappRuntimeError(
+            "execution",
+            "command",
+            `command is ${command.length} characters; the substrate refuses commands longer than ${SUBSTRATE_COMMAND_LIMIT_CHARS}`,
+          );
+        if (!cwd.startsWith("/workspace") || cwd.split("/").includes(".."))
+          throw new ClappRuntimeError(
+            "execution",
+            "cwd",
+            `cwd must be an absolute path inside /workspace; received "${cwd}"`,
+          );
+      }
       signal?.throwIfAborted();
       const owner = await resolveOwner(bound, reconstructionId, "execution");
       const controller = new AbortController();
@@ -522,12 +599,16 @@ function makeExecutionProvider(bound: BoundHandles): ExecutionProvider {
       }, timeoutMs);
       const onCallerAbort = () => controller.abort();
       signal?.addEventListener("abort", onCallerAbort);
+      const idempotencyKey = candidate ? derivedExecutionKey(input) : undefined;
       let receipt: Awaited<ReturnType<NonNullable<ClappComputerHandle["execute"]>>>;
       try {
         receipt = await bound.computer.execute(
           owner,
           { command, cwd },
-          { signal: controller.signal },
+          {
+            ...(idempotencyKey !== undefined ? { idempotencyKey } : {}),
+            signal: controller.signal,
+          },
         );
       } finally {
         clearTimeout(timer);
@@ -540,10 +621,17 @@ function makeExecutionProvider(bound: BoundHandles): ExecutionProvider {
       else if (receipt.status === "succeeded") exitCode = 0;
       else if (timedOutByProvider || receipt.status === "timed_out") exitCode = 124;
       else exitCode = 137;
-      const notes =
-        timedOutByProvider && exitCode === 124
-          ? [`command exceeded the requested ${timeoutMs}ms and was aborted`]
-          : [];
+      const notes: string[] = [];
+      if (timedOutByProvider && exitCode === 124)
+        notes.push(`command exceeded the requested ${timeoutMs}ms and was aborted`);
+      if (candidate && receipt.status === "running")
+        notes.push(
+          `the command is still running under idempotency key ${idempotencyKey}; this result reports an unknown outcome, never success`,
+        );
+      if (candidate && receipt.truncated === true)
+        notes.push(
+          "the substrate truncated this command's captured output at its 128 KB limit; stdout and stderr above are partial",
+        );
       return {
         exitCode,
         stdout,
@@ -551,7 +639,87 @@ function makeExecutionProvider(bound: BoundHandles): ExecutionProvider {
         artifacts: [],
       };
     },
+    /**
+     * Composes the candidate build (and, when it succeeds, the candidate
+     * test) as bounded execution-provider runs. Every step is idempotent
+     * under its derived key, a non-zero exit code is a recorded step result,
+     * and the test step is honestly skipped when the build fails. When a
+     * harvest plan is supplied and every step succeeded, the produced files
+     * are stored through the artifact provider and their ids are returned.
+     */
+    async runCandidateBuild(input, signal) {
+      if (!candidate) throw new ClappNotConfiguredError("execution", "runCandidateBuild");
+      if (!bound.computer) throw new ClappHandleNotProvidedError("execution", "computer");
+      const { reconstructionId, cwd, build, timeoutMs } = input;
+      requireText(reconstructionId, "execution", "reconstructionId", "reconstructionId");
+      requireText(build, "execution", "build", "build command");
+      requireText(cwd, "execution", "cwd", "cwd");
+      if (input.test !== undefined) requireText(input.test, "execution", "test", "test command");
+      if (typeof timeoutMs !== "number" || !Number.isFinite(timeoutMs) || timeoutMs <= 0)
+        throw new ClappRuntimeError(
+          "execution",
+          "timeoutMs",
+          `timeoutMs must be a positive finite number; received ${String(timeoutMs)}`,
+        );
+      const network = input.network ?? "deny";
+      if (network !== "deny" && network !== "allowlist" && network !== "full")
+        throw new ClappRuntimeError(
+          "execution",
+          "network",
+          `network must be "deny", "allowlist" or "full"; received ${String(network)}`,
+        );
+      if (input.harvest !== undefined) {
+        requireText(input.harvest.workspaceId, "execution", "harvest", "harvest.workspaceId");
+        requireText(input.harvest.targetId, "execution", "harvest", "harvest.targetId");
+        if (!Array.isArray(input.harvest.paths) || input.harvest.paths.length === 0)
+          throw new ClappRuntimeError(
+            "execution",
+            "harvest",
+            "harvest.paths must be a non-empty array of workspace-relative paths",
+          );
+        for (const path of input.harvest.paths)
+          requireWorkspaceRelativePath(path, "execution", "harvest", "harvest path");
+      }
+      const steps: CandidateBuildStepResult[] = [];
+      const buildResult = await provider.run(
+        { reconstructionId, cwd, command: build, timeoutMs, network },
+        signal,
+      );
+      steps.push({ name: "build", command: build, ...buildResult });
+      let exitCode = buildResult.exitCode;
+      if (buildResult.exitCode === 0 && input.test !== undefined) {
+        const testResult = await provider.run(
+          { reconstructionId, cwd, command: input.test, timeoutMs, network },
+          signal,
+        );
+        steps.push({ name: "test", command: input.test, ...testResult });
+        exitCode = testResult.exitCode;
+      }
+      let artifacts: string[] = [];
+      const harvestFailures: CandidateHarvestFailure[] = [];
+      if (input.harvest !== undefined && exitCode === 0) {
+        const harvested = await candidateHarvestWorkspaceArtifacts(candidate, {
+          reconstructionId,
+          workspaceId: input.harvest.workspaceId,
+          paths: input.harvest.paths,
+          targetId: input.harvest.targetId,
+        });
+        artifacts = harvested.artifacts;
+        harvestFailures.push(...harvested.failures);
+      }
+      return { steps, exitCode, succeeded: exitCode === 0, artifacts, harvestFailures };
+    },
+    /**
+     * Harvests produced workspace files through the artifact provider. Every
+     * path either becomes a stored artifact id or an honest per-path failure;
+     * nothing is silently dropped.
+     */
+    async harvestWorkspaceArtifacts(input) {
+      if (!candidate) throw new ClappNotConfiguredError("execution", "harvestWorkspaceArtifacts");
+      return candidateHarvestWorkspaceArtifacts(candidate, input);
+    },
   };
+  return provider;
 }
 
 function makeApprovalProvider(bound: BoundHandles): ApprovalProvider {
@@ -608,16 +776,28 @@ interface WorkspaceIndexRecord {
   reconstructionId: string;
   kind: "reference" | "candidate";
   path: string;
+  /** 0 for Wave 1-era records; the deterministic instance for W1-003 records. */
+  instance?: number;
   createdAt: string;
 }
 
-function makeWorkspaceProvider(bound: BoundHandles): WorkspaceProvider {
-  return {
+function makeWorkspaceProvider(
+  bound: BoundHandles,
+  candidate?: CandidateSeamContext,
+): CandidateWorkspaceProvider {
+  const provider: CandidateWorkspaceProvider = {
     /**
      * Creates a sandbox workspace directory for a reconstruction. Repeated
-     * creates while the workspace is alive return the same stable id; after a
-     * destroy the registry entry is gone, so the next create allocates a
-     * genuinely new id and never resurrects a destroyed one.
+     * creates while the workspace is alive return the same stable id.
+     *
+     * With the candidate seam wired (W1-003) the directory follows the
+     * deterministic naming scheme (reconstructionId + kind + instance
+     * discriminator), the instance consults the directories that exist under
+     * the scheme and the tombstones of destroyed ids (so ids are never reused
+     * after destroy and allocation survives restarts without in-memory
+     * state), and the id is registered in the run's stage state so recovery
+     * can find it. Without the candidate options the Wave 1 first-cut
+     * lifecycle is preserved byte-for-byte.
      */
     async create(input) {
       if (!bound.computer) throw new ClappHandleNotProvidedError("workspaces", "computer");
@@ -629,6 +809,7 @@ function makeWorkspaceProvider(bound: BoundHandles): WorkspaceProvider {
           "kind",
           `workspace kind must be "reference" or "candidate"; received ${String(input.kind)}`,
         );
+      if (candidate) return candidateCreateWorkspace(candidate, input);
       const owner = await resolveOwner(bound, reconstructionId, "workspaces");
       const registryId = `${reconstructionId}:${input.kind}`;
       const existing = await bound.db.get(owner, "clapp-workspaces", registryId);
@@ -668,12 +849,18 @@ function makeWorkspaceProvider(bound: BoundHandles): WorkspaceProvider {
     },
     /**
      * Destroys a workspace by removing its registry entry first (so the id
-     * stops being live) and then removing the sandbox directory. A failed
-     * directory removal surfaces as a typed error; the orphaned directory
-     * never re-enters the registry, so its id is never reused.
+     * stops being live) and then removing the sandbox directory.
+     *
+     * With the candidate seam wired (W1-003) a tombstone records the consumed
+     * id: destroying an already-destroyed KNOWN id is an idempotent no-op and
+     * the id is never reused; a failed directory removal still surfaces as a
+     * typed error and the orphaned directory never re-enters the registry.
+     * Without the candidate options the Wave 1 first-cut semantics are
+     * preserved byte-for-byte.
      */
     async destroy(id) {
       if (!bound.computer) throw new ClappHandleNotProvidedError("workspaces", "computer");
+      if (candidate) return candidateDestroyWorkspace(candidate, id);
       requireText(id, "workspaces", "destroy", "workspace id");
       const rows = await bound.db.scan("clapp-workspaces");
       const match = rows.find(({ value }) => value.workspaceId === id);
@@ -696,18 +883,93 @@ function makeWorkspaceProvider(bound: BoundHandles): WorkspaceProvider {
           `the sandbox removal for workspace "${id}" exited ${String(receipt.exitCode)}; the directory "${record.path}" may remain, but the workspace id is no longer registered or reusable`,
         );
     },
+    /**
+     * Seeds one candidate file into a workspace. Content above the substrate's
+     * 256 KB write limit is split into chunks that each stay under the limit
+     * and reassembled by a bounded, idempotent, integrity-verified command.
+     * Fails closed with a typed not-configured error when the candidate seam
+     * was not wired.
+     */
+    async seedWorkspaceFile(input) {
+      if (!candidate) throw new ClappNotConfiguredError("workspaces", "seedWorkspaceFile");
+      return candidateSeedFile(candidate, input);
+    },
+    /**
+     * Bounded recursive listing of workspace contents through the substrate's
+     * own directory listing (one bounded call per directory, symlinks never
+     * followed, hard budgets on directories and entries). Fails closed with a
+     * typed not-configured error when the candidate seam was not wired.
+     */
+    async listWorkspaceFiles(input) {
+      if (!candidate) throw new ClappNotConfiguredError("workspaces", "listWorkspaceFiles");
+      return candidateListWorkspaceFiles(candidate, input);
+    },
+    /**
+     * Restart-safe discovery of live workspace directories for a
+     * reconstruction by the deterministic path scheme alone — the substrate's
+     * own directory listing is the only source consulted, so discovery works
+     * without hidden in-memory state. Fails closed with a typed
+     * not-configured error when the candidate seam was not wired.
+     */
+    async discoverWorkspaces(input) {
+      if (!candidate) throw new ClappNotConfiguredError("workspaces", "discoverWorkspaces");
+      return candidateDiscoverWorkspaces(candidate, input);
+    },
+  };
+  return provider;
+}
+
+/**
+ * Binds the five untyped OpenMuse handles onto the six CLAPP providers.
+ *
+ * The optional second argument wires the W1-003 candidate workspace execution
+ * seam: with it, the execution and workspaces providers carry the real
+ * ComputerService candidate semantics and the seam methods
+ * (`runCandidateBuild`, `harvestWorkspaceArtifacts`, `seedWorkspaceFile`,
+ * `listWorkspaceFiles`, `discoverWorkspaces`) become live; the computer
+ * handle's candidate capabilities are validated at bind time with typed
+ * errors naming the missing capability. Without it every Wave 1 export and
+ * behavior stays byte-for-byte intact and the seam methods fail closed with
+ * typed not-configured errors at call time.
+ */
+export function createOpenMuseRuntime(
+  deps: OpenMuseRuntimeDependencies,
+  options?: CandidateExecutionOptions,
+): OpenMuseRuntime {
+  const bound = bindHandles(deps);
+  const artifacts = makeArtifactProvider(bound);
+  let candidate: CandidateSeamContext | undefined;
+  if (options !== undefined && options !== null) {
+    const configuration = resolveCandidateOptions(options);
+    bindCandidateCapabilities(bound);
+    candidate = { bound, configuration, artifacts };
+  }
+  const execution = makeExecutionProvider(bound, candidate);
+  const workspaces = makeWorkspaceProvider(bound, candidate);
+  return {
+    observation: makeObservationProvider(bound),
+    execution,
+    artifacts,
+    tasks: makeTaskProvider(bound),
+    approvals: makeApprovalProvider(bound),
+    workspaces,
   };
 }
 
-/** Binds the five untyped OpenMuse handles onto the six CLAPP providers. */
-export function createOpenMuseRuntime(deps: OpenMuseRuntimeDependencies): OpenMuseRuntime {
-  const bound = bindHandles(deps);
+/**
+ * Type-safe access to the candidate seam methods on a runtime produced by
+ * this adapter. The runtime always constructs its execution and workspaces
+ * providers with the seam methods; this helper only narrows their static
+ * types, so callers can reach `runCandidateBuild`, `harvestWorkspaceArtifacts`,
+ * `seedWorkspaceFile`, `listWorkspaceFiles` and `discoverWorkspaces` without
+ * casting.
+ */
+export function candidateSeamOf(runtime: OpenMuseRuntime): {
+  execution: CandidateExecutionProvider;
+  workspaces: CandidateWorkspaceProvider;
+} {
   return {
-    observation: makeObservationProvider(bound),
-    execution: makeExecutionProvider(bound),
-    artifacts: makeArtifactProvider(bound),
-    tasks: makeTaskProvider(bound),
-    approvals: makeApprovalProvider(bound),
-    workspaces: makeWorkspaceProvider(bound),
+    execution: runtime.execution as CandidateExecutionProvider,
+    workspaces: runtime.workspaces as CandidateWorkspaceProvider,
   };
 }
