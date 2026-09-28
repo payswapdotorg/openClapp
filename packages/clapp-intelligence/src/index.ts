@@ -116,3 +116,31 @@ export {
   normalizePackageVersion,
   parsePackageVersion,
 } from "./package-version.ts";
+
+// CLAPP-W2-006 — package extraction and promotion.
+
+export type {
+  ArchetypeHint,
+  CandidateRegistration,
+  ExtractionResult,
+  ExtractionSummary,
+  PackageCandidateBody,
+  PackageCandidateDocument,
+  ParityEvidence,
+  ParitySummary,
+  ParityVerdict,
+  PlanApiEntry,
+  PlanComponentEntry,
+  PlanInventory,
+  PromotionOutcome,
+  ReconstructionArtifacts,
+  RegistrationOutcome,
+  SkippedExtraction,
+} from "./extract-package.ts";
+export {
+  extractionSummary,
+  extractPackageCandidates,
+  GENERIC_PACKAGE_CATEGORY,
+  promoteVerified,
+  registerCandidates,
+} from "./extract-package.ts";
