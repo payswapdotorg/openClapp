@@ -44,6 +44,13 @@ import {
  * package's structural PairedSide interface, imported here at the test seam
  * (the packages themselves stay decoupled). Every server interaction is
  * in-process loopback on ephemeral ports; no Chromium, no Docker, no network.
+ *
+ * CLAPP-W3-005 supersession note: the runner now compares the visual and
+ * network dimensions on the same captures, so the two expectations that
+ * pinned finding inventories at the W3-004 four-dimension boundary (the
+ * anchor-divergence count and the real-candidate dimension restriction)
+ * were updated to the new exact inventories — strengthened, never weakened:
+ * every additional finding is named and asserted deterministically.
  */
 
 const B01 = CANONICAL_BENCHMARKS[0];
@@ -215,7 +222,12 @@ test("anchor divergence is detected deterministically", async () => {
   const run = await runPairedJourney({ journey, reference, candidate });
 
   assert.equal(run.report.verdict, "divergent");
-  assert.equal(run.report.findings.length, 1); // exactly the anchor finding, nothing else
+  // W3-005: the mutated h1 now surfaces in FOUR findings — the semantic
+  // anchor gap (W3-004), the two visual heading keys (the reference's
+  // h1:Digital craft with a human touch vanished; the candidate's
+  // h1:Digital craft with a gentle hand appeared), and the visual skeleton
+  // digest catch-all (info). Exactly four, nothing else.
+  assert.equal(run.report.findings.length, 4);
   const finding = run.report.findings[0];
   assert.equal(finding.dimension, "semantic");
   assert.equal(finding.severity, "major");
@@ -225,6 +237,38 @@ test("anchor divergence is detected deterministically", async () => {
     finding.actual,
     anchorsOf(B01, "/").filter((anchor) => anchor !== missingAnchor),
   );
+
+  // The visual heading findings: one per one-side-only heading key, each
+  // carrying the full heading inventories as expected/actual.
+  const headingAnchors = run.report.findings
+    .filter((each) => each.anchor.startsWith("visual:heading:"))
+    .map((each) => each.anchor);
+  assert.deepEqual(headingAnchors, [
+    "visual:heading:h1:Digital craft with a gentle hand",
+    "visual:heading:h1:Digital craft with a human touch",
+  ]);
+  const referenceHeadings = [
+    { level: 1, text: missingAnchor },
+    { level: 2, text: "What we build" },
+    { level: 2, text: "How we work" },
+  ];
+  const candidateHeadings = [
+    { level: 1, text: "Digital craft with a gentle hand" },
+    ...referenceHeadings.slice(1),
+  ];
+  assert.deepEqual(run.report.findings[1].expected, referenceHeadings);
+  assert.deepEqual(run.report.findings[1].actual, candidateHeadings);
+  assert.ok(
+    run.report.findings
+      .filter((each) => each.anchor.startsWith("visual:heading:"))
+      .every((each) => each.dimension === "visual" && each.severity === "major"),
+  );
+
+  // The visible-text skeleton digest divergence is the informational
+  // catch-all (no structured channel beyond the heading keys changed).
+  const skeleton = run.report.findings.find((each) => each.anchor === "visual:skeleton");
+  assert.ok(skeleton !== undefined);
+  assert.equal(skeleton.severity, "info");
 
   // Deterministic: a fresh pairing of the same sides reproduces the report byte-for-byte.
   const again = await runPairedJourney({
@@ -467,8 +511,25 @@ test("paired journey against the REAL generated candidate", async () => {
   );
   assert.ok(anchorFindings.some((finding) => finding.anchor === "We are Aurora Studio"));
   assert.ok(anchorFindings.some((finding) => finding.anchor === "Home"));
-  // No state dimension findings: the generated candidate exposes no snapshotState.
-  assert.ok(run.report.findings.every((finding) => finding.dimension === "semantic"));
+  // W3-005: no state dimension findings (the generated candidate exposes no
+  // snapshotState) and no network dimension findings (both sides serve
+  // identical deterministic protocol headers with no redirects — including
+  // the identical 404s on /api/); the visual dimension reports the honest
+  // visual gaps (title, headings, links, skeleton) alongside the semantic
+  // anchor gaps — and nothing else.
+  assert.ok(!run.report.findings.some((finding) => finding.dimension === "state"));
+  assert.ok(!run.report.findings.some((finding) => finding.dimension === "network"));
+  assert.ok(
+    run.report.findings.every(
+      (finding) => finding.dimension === "semantic" || finding.dimension === "visual",
+    ),
+  );
+  const visualFindings = run.report.findings.filter((finding) => finding.dimension === "visual");
+  assert.ok(visualFindings.some((finding) => finding.anchor === "visual:title"));
+  assert.ok(
+    visualFindings.some((finding) => finding.anchor === "visual:heading:h1:We are Aurora Studio"),
+  );
+  assert.ok(visualFindings.some((finding) => finding.anchor === "visual:skeleton"));
   // Both sides 404 on /api/ (equal absence): no api finding despite the check running.
   assert.ok(!run.report.findings.some((finding) => finding.anchor === "/api/"));
 
