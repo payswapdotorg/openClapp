@@ -43,7 +43,7 @@ openClapp
 │   └── ⬜ promotion/evaluation
 │
 ├── ⬜ App archetype factory
-│   ├── ⬜ archetype detection
+│   ├── 🟡 archetype detection (W2-004, wave 5)
 │   ├── ⬜ composition planner
 │   ├── ⬜ repeated-build benchmarks
 │   └── ⬜ measurable compounding improvement
