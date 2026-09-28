@@ -31,7 +31,7 @@ openClapp
 │   ├── ✅ synthesis plan (W3-001, wave 1)
 │   ├── ✅ candidate generation (W3-002, wave 3)
 │   ├── ✅ paired verification (W3-004, wave 4) + diff dimensions (W3-005, wave 5)
-│   └── ⬜ bounded repair
+│   └── ✅ bounded repair (W3-006, wave 6)
 │
 ├── ⬜ Learning system
 │   ├── ✅ package schema (W2-005, wave 2)

@@ -280,3 +280,16 @@ Acceptance: M6 steps 1-3 now close end-to-end — a successful reconstruction's 
 New risks: extraction emits tests: [] (the frozen JSON schema vs TS interface tests mismatch — W2-005's documented known gap; empty satisfies both); the generic category fallback (GENERIC_PACKAGE_CATEGORY) covers absent archetypes honestly; package reuse measurement (M6 steps 4-6) waits on W2-007 retrieval.
 Contract/ADR changes: none.
 Next unblocked work: W2-007 (retrieval/compatibility graph), W2-008 (failure memory), W2-009 (continuous-learning benchmarks, partial).
+
+## 2026-09-28 — Wave 6 Lane 1 (CLAPP-W3-006) integrated — WAVE 6 CLOSED
+
+Date: 2026-09-28
+Phase: Phase 5 (M5 repair) — wave 6 lane 1.
+Work items: CLAPP-W3-006 — bounded autonomous repair (packages/clapp-synthesis/src/repair.ts: classifyRepairActions/applyRepairActions/runRepairLoop/summarizeRepair; the M5 mutation classes over plan inputs).
+Dispatch note: SEVEN dispatches — the platform's agent-turn infrastructure degraded after ~07:30 UTC (six consecutive mid-flight turn deaths, all mid-tool-execution, pod Running, sends swallowed). The exploration-lite r2 prompt revision (embedded key surfaces, ~15-tool-call recon budget, baseline-battery-once discipline) got the winning run from setup to writing in 8 minutes; it completed in 38 minutes once the platform window improved.
+Integrated commits: worker branch clapp-w3-006 head f5cbb25 on base 493bbd1 (bundle sha256 d2f40a31… verified EXACT; 3/3 per-file sha256s verified: repair.ts, index.ts additive block, 8-test file).
+Tests: 8/8 named tests (visible-text repair to convergence; network-mock repair; state-storage repair; absolute budget; stagnation stop; honest abstention; purity of apply; byte-identical reports). TL battery on merged main: typecheck 0, lint 0 (206 files), build:server OK, full suite 335/333/2 (the 2 pre-existing file-level artifacts), W3-006 suite 8/8 standalone.
+Acceptance: the repair loop consumes W3-005's DiffFinding feed, maps findings to bounded plan-input mutations per the M5 classes, resolves reference-sourced replacements by probing the LIVE reference (GET per api path + snapshotState once — never fabricated), re-materializes and re-verifies through the paired runner, and stops on convergence/stagnation/budget — with honest abstention for every non-derivable finding (skeleton digest, manual repairability, unstructured anchors: links/images/controls/headers/redirects/content-type/route topology).
+New risks: reference-probe resolution assumes the reference side's api GETs and snapshotState are stable during the loop (true for the in-process benchmarks; server-orchestrated references should snapshot once); the repair mutates PLAN inputs only (never generated code) — repairs needing structural template changes abstain honestly.
+Contract/ADR changes: none.
+Next unblocked work: WAVE 7 — W2-007 (retrieval/compat graph), W3-007 (UX surfaces — prompts authored); then W2-008 (failure memory), W2-009, W3-003/W3-008.
