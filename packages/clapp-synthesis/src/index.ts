@@ -34,6 +34,35 @@ export {
   runGeneratedCandidateBuild,
 } from "./materialize.ts";
 export type {
+  PairedApiCapture,
+  PairedApiCheck,
+  PairedArtifact,
+  PairedJourney,
+  PairedJourneySummary,
+  PairedPageCapture,
+  PairedRunEnvelope,
+  PairedSide,
+  PairedSideCapture,
+  PairedSideLabel,
+  PairedStateCapture,
+  PairedSuiteResult,
+  PairedTransport,
+  PairedVerdict,
+  RunPairedJourneyInput,
+  RunPairedSuiteInput,
+  StartedPairedSide,
+} from "./paired.ts";
+export {
+  bindPairedSide,
+  PairedSideError,
+  runPairedJourney,
+  runPairedSuite,
+  serializePairedReport,
+  serializePairedRun,
+  serializePairedSuite,
+} from "./paired.ts";
+export { compareSidesSemantically } from "./paired-compare.ts";
+export type {
   DerivedAssumption,
   PlanComponent,
   PlanKeyedEntry,
