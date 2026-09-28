@@ -181,3 +181,15 @@ Acceptance: all 8 required named tests PASS (determinism incl. cross-process byt
 New risks: the generated server.ts is deliberately plan-independent boilerplate (routes/persistence/api JSON + pages) — candidate differentiation lives in data, not server code, until the generator grows stack policies; npx tsx inside the candidate workspace relies on the repo-root toolchain availability (documented constraint).
 Contract/ADR changes: none; the reconstructionId needed by seam calls is a materialization input (not smuggled through the plan) — clean.
 Next unblocked work: W3-003 (generated acceptance suite deepening), W3-004 (paired runner — reference B01/B02 vs generated candidates), Phase 5 differential verification chain.
+
+## 2026-09-28 — Wave 3 Lane 2 (CLAPP-W2-002) integrated — WAVE 3 COMPLETE
+
+Date: 2026-09-28
+Phase: Phase 3 (Behavioral IR, extraction half) — wave 3 lane 2; wave 3 now fully integrated.
+Work items: CLAPP-W2-002 — evidence-to-IR extraction in @clapp/intelligence.
+Integrated commits: adb4281 (worker, single commit on base bdc6fd5; bundle sha256 8b286ad8… verified, 3/3 per-file sha256s match) → merge.
+Tests: worker battery as reported (their sandbox baseline + artifact class identical); TL env full-wave-3: 270/268/2 — the same pre-existing file-level artifacts; W2-002 suite 8/8 standalone; typecheck 0; lint 0; build:server OK; lockfile unchanged.
+Acceptance: all 8 required named tests PASS (extracted IR validates under W2-001's validator; evidence refs carried verbatim; unavailable channels become assumptions never observations — ARCHITECTURE §6 upheld; determinism; purity; truncation recorded honestly; empty/partial bundles degrade honestly; engine model() now extracts). Constitution verified: only packages/clapp-intelligence/** + tests/clapp-w2-002-extract.test.ts touched.
+New risks: extraction relies on the bundle's environment.entrypointRefs fingerprint for ref attribution (a bundle without it degrades to per-ref entrypoint parsing); screens/journeys are baseline-depth until W2-003's exploration.
+Contract/ADR changes: none enacted.
+Next unblocked work: W2-003 (deterministic exploration + journey model — deepens the baseline journeys), W2-004 (archetype classifier), the Phase 5 chain (W3-004 paired runner — benchmarks + candidates + IR all ready).
