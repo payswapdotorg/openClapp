@@ -205,3 +205,15 @@ Acceptance: all 8 required named tests PASS (identical-sides equivalence + byte-
 New risks: the DiffReport semantic dimension compares the ANCHOR contract (not full text equality) — by design until richer diff dimensions land (W3-005); one DELIVERY.md declared hash has a single-character transcription discrepancy for paired-compare.ts (declared …315… vs tree …325…) — the bundle sha256 and the other 3/4 file hashes match exactly; the git tree is the artifact of record and passed the full battery. Recorded honestly per the declaration-accuracy discipline.
 Contract/ADR changes: none enacted.
 Next unblocked work: W3-005 (semantic/visual/network/state diff dimensions on top of compareSidesSemantically), W3-006 (bounded repair), the M4 parity gate runs.
+
+## 2026-09-28 — Wave 4 Lane 1 (CLAPP-W1-004) integrated
+
+Date: 2026-09-28
+Phase: Phase 1 final gate (run artifact/recovery semantics) — wave 4 lane 1.
+Work items: CLAPP-W1-004 — ClappRunState/task-chain recovery in @clapp/runtime-openmuse.
+Integrated commits: 15059f8 (worker, single commit on base 8c55320; bundle sha256 aa3ccef5… verified, 6/6 per-file sha256s match) → merge.
+Tests: TL env 285/282/3 — the full intermittent artifact trio this run (browser, oauth, conversation-browser; all named subtests pass; run-to-run variance as documented); W1-004 suite 8/8 standalone incl. the M0 GATE test "kill/restart resumes from the last durable stage" over a REAL TaskWorker; typecheck 0; lint 0; build:server OK; lockfile unchanged.
+Acceptance: run-state derivation from the task chain (malformed entries counted, never thrown); restart/pause/cancel/retry preserving stage state; deterministic restart planner with honest rationales; artifact ledger with per-stage attribution; stage-chain handler with successor planning that NEVER auto-creates tasks; the W1 conventions (clappStage key, event title vocabulary) now exported standardized consts.
+New risks: none flagged beyond the W1-001 baseline set; run-level state derives purely from the task chain (no second store — by design).
+Contract/ADR changes: none enacted.
+Next unblocked work: server-side stage orchestration (the chain's planNextTask consumers), W3-005/W3-006 (repair loop over durable runs), Phase 6 learning over run artifacts.
