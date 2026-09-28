@@ -5,11 +5,21 @@ import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { z } from "zod";
+import { createOpenMuseRuntime } from "../../../packages/clapp-runtime-openmuse/src/index.ts";
 import { emailDraftSchema, proposalSchema } from "../../../packages/domain/src/index.ts";
 import { ActionService } from "./actions.ts";
 import { agentConfigured, makeRuntime } from "./agent.ts";
 import { createAuth } from "./auth.ts";
 import { BrowserService } from "./browser.ts";
+import { createClappRepositories } from "./clapp/repositories.ts";
+import { clappRoutes } from "./clapp/routes.ts";
+import { createClappService } from "./clapp/service.ts";
+import {
+  createClappWorkerHandler,
+  createSkeletonStageExecutor,
+  extractSubstrateWorkerHandler,
+  installClappWorkerHandler,
+} from "./clapp/worker.ts";
 import { ComputerService, type DockerRunner } from "./computer.ts";
 import { computerRoutes } from "./computer-routes.ts";
 import { assertApiDeploymentConfig, type Config } from "./config.ts";
@@ -43,6 +53,33 @@ export async function createApp(
   const agent = new AgentService(db, config, workspace, files, actions, browser, computer);
   const intelligence = new CopilotKitIntelligence({ apiKey: config.intelligenceApiKey });
   const runtime = makeRuntime(config, agent, auth, intelligence);
+  // CLAPP orchestration adapters (REPO_MAP "Server integration"): the runtime
+  // binds the real services, the control plane persists reconstructions and
+  // drives the stage chain, and the worker handler wraps the substrate's
+  // handler so CLAPP tasks run their stages while every other task flows
+  // through unchanged.
+  const clappRuntime = createOpenMuseRuntime({
+      browserSession: browser,
+      computer,
+      files,
+      agent,
+      db,
+    }),
+    clappRepositories = createClappRepositories(db),
+    clappService = createClappService({
+      db,
+      agent,
+      runtime: clappRuntime,
+      repositories: clappRepositories,
+    }),
+    clappExecutor = createSkeletonStageExecutor({ readSpec: clappRepositories.findSpec }),
+    clappHandler = createClappWorkerHandler({
+      db,
+      runtime: clappRuntime,
+      executor: clappExecutor.executor,
+      fallback: extractSubstrateWorkerHandler(agent.worker),
+    });
+  installClappWorkerHandler(agent.worker, clappHandler);
   const app = new Hono<{ Variables: { owner: string } }>();
   const origins = new Set([...config.allowedOrigins, new URL(config.publicUrl).origin]);
   app.use("*", async (c, next) => {
@@ -150,6 +187,7 @@ export async function createApp(
     return c.json(snapshot);
   });
   app.route("/api/agent", agentRoutes(agent));
+  app.route("/api/clapp", clappRoutes(clappService, auth));
   app.route("/api/computer", computerRoutes(computer, files));
   app.get("/api/calendars", async (c) => c.json(await workspace.calendars(c.get("owner"))));
   app.get("/api/calendar/events", async (c) => {
