@@ -1,4 +1,6 @@
 import type { BehavioralIr, EvidenceBundle, ReconstructionSpec } from "@clapp/contracts";
+import type { ArchetypeClassificationInput, ArchetypeVerdict } from "./archetype.ts";
+import { classifyFromIr } from "./archetype.ts";
 import type { ExplorationInput, ExplorationResult } from "./explore.ts";
 import { explore } from "./explore.ts";
 import { extractBehavioralIr } from "./extract.ts";
@@ -14,7 +16,9 @@ export interface PackageRetriever {
 /**
  * The CLAPP intelligence engine. model() extracts the BehavioralIr from an
  * observation bundle (CLAPP-W2-002); explore() deepens an IR's journeys
- * deterministically from its screens/evidence (CLAPP-W2-003); the remaining
+ * deterministically from its screens/evidence (CLAPP-W2-003); classify()
+ * maps the IR plus its exploration result onto the Phase 7 archetype
+ * vocabulary with evidence-cited confidence (CLAPP-W2-004); the remaining
  * engine capabilities are filled in by later work items.
  */
 export function createIntelligenceEngine() {
@@ -24,6 +28,9 @@ export function createIntelligenceEngine() {
     },
     explore(input: ExplorationInput): ExplorationResult {
       return explore(input);
+    },
+    classify(input: ArchetypeClassificationInput): ArchetypeVerdict {
+      return classifyFromIr(input);
     },
   };
 }
@@ -51,6 +58,24 @@ export type {
   JourneyCoverage,
 } from "./explore.ts";
 export { composeExploredIr, explore, journeyDiffCoverage } from "./explore.ts";
+
+// CLAPP-W2-004 — archetype classifier.
+
+export type {
+  ArchetypeClassificationInput,
+  ArchetypeDefinition,
+  ArchetypeFeatures,
+  ArchetypeLabel,
+  ArchetypeScore,
+  ArchetypeVerdict,
+  EvidenceKindCount,
+} from "./archetype.ts";
+export {
+  ARCHETYPES,
+  classifyArchetype,
+  classifyFromIr,
+  extractArchetypeFeatures,
+} from "./archetype.ts";
 
 // CLAPP-W2-005 — package schema, registry and versioning.
 
