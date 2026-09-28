@@ -21,7 +21,7 @@ openClapp
 │   ├── ✅ frozen contracts (v0.1, TL-0 verified)
 │   ├── ✅ OpenMuse runtime adapter (W1-001, wave 1; execution seam W1-003, wave 2)
 │   ├── ✅ CLAPP task kind/state/events (W1-004, wave 4)
-│   └── ⬜ CLAPP repositories
+│   └── ✅ CLAPP repositories (W1-007, wave 5)
 │
 ├── ⬜ Web reconstruction MVP
 │   ├── ⬜ target authorization
