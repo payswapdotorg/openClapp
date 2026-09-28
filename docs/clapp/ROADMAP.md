@@ -30,7 +30,7 @@ openClapp
 │   ├── ✅ Behavioral IR (W2-001, wave 1)
 │   ├── ✅ synthesis plan (W3-001, wave 1)
 │   ├── ✅ candidate generation (W3-002, wave 3)
-│   ├── ⬜ paired verification
+│   ├── ✅ paired verification (W3-004, wave 4; diff dimensions W3-005 next)
 │   └── ⬜ bounded repair
 │
 ├── ⬜ Learning system

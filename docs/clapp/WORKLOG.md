@@ -193,3 +193,15 @@ Acceptance: all 8 required named tests PASS (extracted IR validates under W2-001
 New risks: extraction relies on the bundle's environment.entrypointRefs fingerprint for ref attribution (a bundle without it degrades to per-ref entrypoint parsing); screens/journeys are baseline-depth until W2-003's exploration.
 Contract/ADR changes: none enacted.
 Next unblocked work: W2-003 (deterministic exploration + journey model — deepens the baseline journeys), W2-004 (archetype classifier), the Phase 5 chain (W3-004 paired runner — benchmarks + candidates + IR all ready).
+
+## 2026-09-28 — Wave 4 Lane 3 (CLAPP-W3-004) integrated
+
+Date: 2026-09-28
+Phase: Phase 5 (differential verification, runner half) — wave 4 lane 3.
+Work items: CLAPP-W3-004 — reference/candidate paired runner in @clapp/synthesis.
+Integrated commits: 8c62a84 (worker, single commit on base 8c55320; bundle sha256 c9f11835… verified) → merge.
+Tests: TL env 278/276/2 — the same pre-existing file-level artifacts; W3-004 suite 8/8 standalone (incl. the real-benchmark-harness vs real-generated-candidate paired run); typecheck 0; lint 0; build:server OK; lockfile unchanged.
+Acceptance: all 8 required named tests PASS (identical-sides equivalence + byte-determinism; anchor divergence detection with expected/actual inventories; state-transition divergence; blocked-verdict honesty on dead sides; deterministic suite aggregation; the REAL generated-candidate paired run; fail-closed structural binding + purity; transport facts kept out of the deterministic report). Constitution verified: only packages/clapp-synthesis/** + tests/clapp-w3-004-paired.test.ts touched; synthesis stayed decoupled from benchmarks via the PairedSide structural interface.
+New risks: the DiffReport semantic dimension compares the ANCHOR contract (not full text equality) — by design until richer diff dimensions land (W3-005); one DELIVERY.md declared hash has a single-character transcription discrepancy for paired-compare.ts (declared …315… vs tree …325…) — the bundle sha256 and the other 3/4 file hashes match exactly; the git tree is the artifact of record and passed the full battery. Recorded honestly per the declaration-accuracy discipline.
+Contract/ADR changes: none enacted.
+Next unblocked work: W3-005 (semantic/visual/network/state diff dimensions on top of compareSidesSemantically), W3-006 (bounded repair), the M4 parity gate runs.
