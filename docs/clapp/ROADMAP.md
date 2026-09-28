@@ -37,7 +37,7 @@ openClapp
 │   ├── ✅ package schema (W2-005, wave 2)
 │   ├── ⬜ registry/versioning
 │   ├── ✅ package extraction (W2-006, wave 6)
-│   ├── ⬜ retrieval
+│   ├── ✅ retrieval (W2-007, wave 7)
 │   ├── ⬜ compatibility graph
 │   ├── ⬜ failure memory
 │   └── ⬜ promotion/evaluation

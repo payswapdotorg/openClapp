@@ -293,3 +293,16 @@ Acceptance: the repair loop consumes W3-005's DiffFinding feed, maps findings to
 New risks: reference-probe resolution assumes the reference side's api GETs and snapshotState are stable during the loop (true for the in-process benchmarks; server-orchestrated references should snapshot once); the repair mutates PLAN inputs only (never generated code) — repairs needing structural template changes abstain honestly.
 Contract/ADR changes: none.
 Next unblocked work: WAVE 7 — W2-007 (retrieval/compat graph), W3-007 (UX surfaces — prompts authored); then W2-008 (failure memory), W2-009, W3-003/W3-008.
+
+## 2026-09-28 — Wave 7 Lane 1 (CLAPP-W2-007) integrated
+
+Date: 2026-09-28
+Phase: Phase 6 (M6 step 5 — the package-reuse feed) — wave 7 lane 1.
+Work items: CLAPP-W2-007 — package retrieval & compatibility graph (packages/clapp-intelligence/src/retrieval.ts: buildCompatGraph/retrievePackages/explainCompatibility/retrievalSummary).
+Dispatch note: 2nd dispatch — the first died at the baseline battery in a closed platform window; a lesson-105 Chrome restart cleared the CDP WebSocket strain and the re-dispatch ran clean (setup→writing in ~15 min, complete in ~33 min).
+Integrated commits: worker branch clapp-w2-007 head 5d8709a on base 397a3c7 (bundle sha256 bd484fb5… verified EXACT; 3/3 per-file sha256s verified).
+Tests: 8/8 named tests (graph pure+deterministic; edges carry derivation reasons; fail-closed filters; deterministic explained ranking; honest unknown capabilities; lineage neighbors visible; real-registry integration; exact accounting). TL battery on merged main: typecheck 0, lint 0 (208 files), build:server OK, full suite 342/341/1 (the 1 pre-existing file-level artifact), W2-007 suite 8/8 standalone.
+Acceptance: retrieval over a populated registry is deterministic, explained, fail-closed; the compatibility graph is a pure derived function of registry contents (category/capability/target/lineage edges with reasons); the M6 "reuse packages" feed composes extraction (W2-006) + graph + ranked retrieval end-to-end.
+New risks: compatibility is derived from declared metadata only (category/capabilities/targets) — semantic compatibility (actual interface fit) waits for richer package interface contracts; ranking weights are the documented defaults (deterministic, revisitable).
+Contract/ADR changes: none.
+Next unblocked work: W3-007 (UX surfaces — in flight), W2-008 (failure memory), W2-009 (continuous-learning benchmarks).
