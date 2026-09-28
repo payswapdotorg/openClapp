@@ -157,3 +157,15 @@ Acceptance: all 9 required named tests PASS incl. the integration-seam test (rea
 New risks: the evidence byte vault is in-memory (durable evidence storage is a later wave); the seam binds the real BrowserService shape but the live worker's response envelope is only exercised through the stub.
 Contract/ADR changes: none enacted.
 Next unblocked work: W2-002 (evidence-to-IR), W2-003 (exploration), W1-005 (benchmark hosting) — all depend on W1-002, now landed; wave 3 dispatch (W1-005, W2-002, W3-002) against this integrated base.
+
+## 2026-09-28 — Wave 3 Lane 1 (CLAPP-W1-005) integrated
+
+Date: 2026-09-28
+Phase: Phase 2 deliverable (disposable web benchmark fixtures) — wave 3 lane 1.
+Work items: CLAPP-W1-005 — disposable benchmark hosting and reset in the NEW @clapp/benchmarks package.
+Integrated commits: c6f4725 (worker, single commit on base bdc6fd5; bundle sha256 f5b9e3ea… verified, 13/13 per-file sha256s match) → merge + TL lockfile regeneration commit (the packages/clapp-benchmarks importer entry — exactly the worker's prediction, +8/−2 lines).
+Tests: worker sandbox 266/265/1 (baseline 258/257/1, the documented browser artifact); TL env 254/252/2 — the same pre-existing file-level artifacts; W1-005 suite 8/8 standalone; typecheck 0; lint 0; build:server OK.
+Acceptance: all 8 required named tests PASS (canonical validation incl. B01's deliberate repeated anchor for parity-diff stress and B02's store-rendered counter/status; deterministic loopback hosting; stateful round-trip + byte-identical reset; idempotent static reset; fake-seam workspace composition with path-ordered seeding; tombstone-respecting workspace reset; fail-closed validator; network-free content). Constitution verified: only packages/clapp-benchmarks/** + tests/clapp-w1-005-benchmarks.test.ts touched (+2586); lockfile left to the TL exactly as declared.
+New risks: serve.js (the per-benchmark sandbox host) is manually verified cross-mode against the harness (constitution forbids process spawning in tests); route grammar is flat/nested lowercase (richer routing needs a contract revision).
+Contract/ADR changes: none; BenchmarkApp/seam types live wholly in @clapp/benchmarks.
+Next unblocked work: W3-004 (paired runner — B01/B02 ready as reference targets), W3-005 (repair — mutateState + PUT /api/ + visible-text surfaces ready), W1-002 observation composition, Phase 6 learning (two materially different archetypes per M6).

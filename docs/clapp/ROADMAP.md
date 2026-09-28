@@ -26,7 +26,7 @@ openClapp
 ├── ⬜ Web reconstruction MVP
 │   ├── ⬜ target authorization
 │   ├── ✅ observation/evidence (W1-002, wave 2)
-│   ├── ⬜ exploration
+│   ├── 🟡 exploration (benchmarks landed W1-005; W2-003 next)
 │   ├── ✅ Behavioral IR (W2-001, wave 1)
 │   ├── ✅ synthesis plan (W3-001, wave 1)
 │   ├── ⬜ candidate generation
