@@ -7,6 +7,32 @@ import type {
 } from "@clapp/contracts";
 import { planSynthesisApp } from "./plan.ts";
 
+export { validateGeneratedApp } from "./app-validate.ts";
+export type {
+  GeneratedApp,
+  GeneratedAppManifest,
+  GeneratedFile,
+} from "./generator.ts";
+export {
+  CANDIDATE_BUILD_COMMAND,
+  CANDIDATE_ENTRYPOINT,
+  CANDIDATE_TEST_COMMAND,
+  generateCandidateApp,
+} from "./generator.ts";
+export type {
+  CandidateBuildOutcomeShape,
+  CandidateBuildStepShape,
+  CandidateNetworkMode,
+  CandidateSeam,
+  CandidateSeedResultShape,
+  Materialization,
+  MaterializeCandidateInput,
+} from "./materialize.ts";
+export {
+  DEFAULT_CANDIDATE_TIMEOUT_MS,
+  materializeCandidate,
+  runGeneratedCandidateBuild,
+} from "./materialize.ts";
 export type {
   DerivedAssumption,
   PlanComponent,
