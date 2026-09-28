@@ -34,7 +34,7 @@ openClapp
 │   └── ⬜ bounded repair
 │
 ├── ⬜ Learning system
-│   ├── ⬜ package schema
+│   ├── ✅ package schema (W2-005, wave 2)
 │   ├── ⬜ registry/versioning
 │   ├── ⬜ package extraction
 │   ├── ⬜ retrieval

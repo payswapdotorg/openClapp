@@ -133,3 +133,15 @@ Acceptance: all required named tests PASS (result-not-exception on failure; netw
 New risks: harvest is PDF-only through the v0.1 files service (per-path honest failure reports); run().artifacts stays [] (harvest is an explicit seam call); workspace registry is enrichment-only (discovery works without it).
 Contract/ADR changes: none enacted. Worker followed the frozen contracts; the seam's concrete shapes (CandidateExecutionOptions, runCandidateBuild, seedWorkspaceFile, discoverWorkspaces, candidateSeamOf) are package-level surface for W3-002 to compose.
 Next unblocked work: W3-002 (web candidate generator — the seam's primary consumer).
+
+## 2026-09-28 — Wave 2 Lane 2 (CLAPP-W2-005) integrated
+
+Date: 2026-09-28
+Phase: Phase 6 foundation (package library) — wave 2 lane 2.
+Work items: CLAPP-W2-005 — package schema, registry and versioning in @clapp/intelligence.
+Integrated commits: 76e2d17 (worker, single commit on base 7350970; bundle sha256 2fce490c… verified, 8/8 per-file sha256s match) → merge.
+Tests: worker sandbox 239/238/1 (baseline 229/228/1, the documented browser artifact); TL env 237/236/1 — failures stay within the pre-existing file-level artifact set (browser/oauth, run-to-run variance); W2-005 suite 10/10 standalone; typecheck 0; lint 0; build:server OK; lockfile unchanged.
+Acceptance: all 10 required named tests PASS (validation round-trip + identity stability; multi-violation collection with exact JSON paths; idempotent register; content-conflict typing; version monotonicity incl. BigInt-exact 1.10.0>1.9.0 and zero-padded normalization; immutable promotion with idempotent identical-evidence re-promotion; deterministic list filters; plus the remaining named tests as delivered). Constitution verified: only packages/clapp-intelligence/** + tests/clapp-w2-005-packages.test.ts touched (+1727).
+New risks: the registry surface is synchronous by design (store port is sync — the OpenMuse-backed adapter will wrap async substrate calls behind it or the surface gets an async sibling in a later wave); JSON-Schema enforcement is hand-implemented against the frozen schema (no ajv — constitution).
+Contract/ADR changes: none enacted; the frozen package.schema.json is enforced EXACTLY.
+Next unblocked work: W2-006 (package extraction/promotion), W2-007 (retrieval/compatibility graph) — both build on this registry.
