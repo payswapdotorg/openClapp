@@ -268,3 +268,15 @@ Acceptance: the CLAPP stack is now DRIVABLE from OpenMuse — create a reconstru
 New risks: the skeleton stage executor is a placeholder seam for capture/explore/model/plan/synthesize/verify/repair/review/promote (the stage vocabulary CLAPP_SERVER_STAGES) — real stage executors compose as they land; the .env DATABASE_URL is environment-local (git-ignored, not delivered); apps/server compiles as part of the root openmuse package by relative source import (no workspace dependency entry — the app.ts convention).
 Contract/ADR changes: none.
 Next unblocked work: WAVE 6 — W3-006 (bounded autonomous repair), W2-006 (package extraction/promotion); then W2-007 (retrieval/compat graph), W2-008 (failure memory), W3-007 (UX surfaces — API/events now stable).
+
+## 2026-09-28 — Wave 6 Lane 2 (CLAPP-W2-006) integrated
+
+Date: 2026-09-28
+Phase: Phase 6 (M6 learning steps 1-3) — wave 6 lane 2.
+Work items: CLAPP-W2-006 — package extraction & promotion (packages/clapp-intelligence/src/extract-package.ts: structural ReconstructionArtifacts input, extractPackageCandidates/registerCandidates/promoteVerified/extractionSummary).
+Integrated commits: worker branch clapp-w2-006 head c9f7b23 on base 493bbd1 (bundle sha256 f2eaef2e… verified EXACT; 3/3 per-file sha256s verified).
+Tests: 8/8 named tests (schema-valid extraction; unverified-parity abstention; evidence-gated promotion; idempotent registration; deterministic+cited extraction; honest archetype category; empty-inventory abstention; the end-to-end M6 steps 1-3 seam over the REAL B02 harness — two independent instances). TL battery on merged main: typecheck 0, lint 0 (204 files), build:server OK, full suite 326/324/2 (the 2 pre-existing file-level artifacts), W2-006 suite 8/8 standalone.
+Acceptance: M6 steps 1-3 now close end-to-end — a successful reconstruction's structural artifacts extract into frozen-schema-valid package candidates, register idempotently through the W2-005 registry, and ONLY parity-verified evidence (verdict equivalent + real verificationRunId) promotes; everything unverified abstains with recorded reasons (fail-closed, never fabricated).
+New risks: extraction emits tests: [] (the frozen JSON schema vs TS interface tests mismatch — W2-005's documented known gap; empty satisfies both); the generic category fallback (GENERIC_PACKAGE_CATEGORY) covers absent archetypes honestly; package reuse measurement (M6 steps 4-6) waits on W2-007 retrieval.
+Contract/ADR changes: none.
+Next unblocked work: W2-007 (retrieval/compatibility graph), W2-008 (failure memory), W2-009 (continuous-learning benchmarks, partial).
