@@ -169,3 +169,15 @@ Acceptance: all 8 required named tests PASS (canonical validation incl. B01's de
 New risks: serve.js (the per-benchmark sandbox host) is manually verified cross-mode against the harness (constitution forbids process spawning in tests); route grammar is flat/nested lowercase (richer routing needs a contract revision).
 Contract/ADR changes: none; BenchmarkApp/seam types live wholly in @clapp/benchmarks.
 Next unblocked work: W3-004 (paired runner — B01/B02 ready as reference targets), W3-005 (repair — mutateState + PUT /api/ + visible-text surfaces ready), W1-002 observation composition, Phase 6 learning (two materially different archetypes per M6).
+
+## 2026-09-28 — Wave 3 Lane 3 (CLAPP-W3-002) integrated
+
+Date: 2026-09-28
+Phase: Phase 4 (web synthesis, generator half) — wave 3 lane 3.
+Work items: CLAPP-W3-002 — web candidate generator in @clapp/synthesis.
+Integrated commits: 76ea771 (worker, single commit on base bdc6fd5; bundle sha256 b7f9347a… verified, 6/6 per-file sha256s match) → merge.
+Tests: worker sandbox 266/265/1 (baseline 258/257/1, the documented browser artifact; the generated suite itself also passes 3/3 out-of-band); TL env 262/260/2 — the same pre-existing file-level artifacts; W3-002 suite 8/8 standalone; typecheck 0; lint 0; build:server OK; lockfile unchanged.
+Acceptance: all 8 required named tests PASS (determinism incl. cross-process byte-stability; route→page+anchor mapping served over loopback; api endpoints serving seeded persistence with PUT updates; acceptance journeys as passing tests; fake-seam materialization with path-ordered seeding and composed build/test commands; plan purity; validator incl. the deny-only loopback-URL rule; empty-plan honest degradation). Constitution verified: only packages/clapp-synthesis/** + tests/clapp-w3-002-generator.test.ts touched.
+New risks: the generated server.ts is deliberately plan-independent boilerplate (routes/persistence/api JSON + pages) — candidate differentiation lives in data, not server code, until the generator grows stack policies; npx tsx inside the candidate workspace relies on the repo-root toolchain availability (documented constraint).
+Contract/ADR changes: none; the reconstructionId needed by seam calls is a materialization input (not smuggled through the plan) — clean.
+Next unblocked work: W3-003 (generated acceptance suite deepening), W3-004 (paired runner — reference B01/B02 vs generated candidates), Phase 5 differential verification chain.

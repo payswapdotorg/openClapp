@@ -29,7 +29,7 @@ openClapp
 │   ├── 🟡 exploration (benchmarks landed W1-005; W2-003 next)
 │   ├── ✅ Behavioral IR (W2-001, wave 1)
 │   ├── ✅ synthesis plan (W3-001, wave 1)
-│   ├── ⬜ candidate generation
+│   ├── ✅ candidate generation (W3-002, wave 3)
 │   ├── ⬜ paired verification
 │   └── ⬜ bounded repair
 │
