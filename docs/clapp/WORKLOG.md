@@ -145,3 +145,15 @@ Acceptance: all 10 required named tests PASS (validation round-trip + identity s
 New risks: the registry surface is synchronous by design (store port is sync — the OpenMuse-backed adapter will wrap async substrate calls behind it or the surface gets an async sibling in a later wave); JSON-Schema enforcement is hand-implemented against the frozen schema (no ajv — constitution).
 Contract/ADR changes: none enacted; the frozen package.schema.json is enforced EXACTLY.
 Next unblocked work: W2-006 (package extraction/promotion), W2-007 (retrieval/compatibility graph) — both build on this registry.
+
+## 2026-09-28 — Wave 2 Lane 1 (CLAPP-W1-002) integrated — WAVE 2 COMPLETE
+
+Date: 2026-09-28
+Phase: Phase 2 (web observation and evidence) — wave 2 lane 1; wave 2 now fully integrated.
+Work items: CLAPP-W1-002 — browser observation adapter in @clapp-observation.
+Integrated commits: b6c73e9 (worker, single commit on base 7350970; bundle sha256 05caa2f3… verified, 9/9 per-file sha256s match) → merge.
+Tests: worker sandbox 238/237/1 (baseline 228/227/1, the documented browser artifact); TL env full-wave-2 battery: 247/245/2 — the same pre-existing file-level artifacts; W1-002 suite 9/9 standalone; typecheck 0; lint 0; build:server OK; lockfile unchanged.
+Acceptance: all 9 required named tests PASS incl. the integration-seam test (real BrowserService/Store/Auth/Files against a node:http loopback stub worker — no Chromium); per-channel honesty (dom-text/page-meta/screenshot observed; dom-structure/a11y/network/storage unavailable with precise source notes); content-addressed refs with locally computed sha256; deterministic byte-identical capture; typed abort (ClappObservationAbortError) with an honest observePartial escape shape; copy-on-write redaction with shape-preserving markers (screenshot markers are real PNGs); frozen OBSERVATION_CHANNELS registry for W2-002. Constitution verified: only packages/clapp-observation/** + tests/clapp-w1-002-observation.test.ts touched.
+New risks: the evidence byte vault is in-memory (durable evidence storage is a later wave); the seam binds the real BrowserService shape but the live worker's response envelope is only exercised through the stub.
+Contract/ADR changes: none enacted.
+Next unblocked work: W2-002 (evidence-to-IR), W2-003 (exploration), W1-005 (benchmark hosting) — all depend on W1-002, now landed; wave 3 dispatch (W1-005, W2-002, W3-002) against this integrated base.
