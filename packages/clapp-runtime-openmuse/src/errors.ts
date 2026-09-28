@@ -59,6 +59,23 @@ export class ClappNotConfiguredError extends ClappRuntimeError {
   }
 }
 
+/**
+ * Raised when a CLAPP run-state consumer is handed something it cannot honestly
+ * read as a stage chain: a malformed chain read where counting-and-skipping
+ * would silently corrupt the caller's decision (for example asking the stage
+ * chain to plan the successor task of a task that carries no valid CLAPP
+ * input, or constructing a chain over an invalid stage list). The pure
+ * derivation helpers (`readClappRunState`, `resumeAfterRestart`,
+ * `runArtifactLedger`) never throw on partial or malformed chains — they count
+ * what they cannot attribute; this error is for the fail-closed surfaces.
+ */
+export class ClappRunStateError extends ClappRuntimeError {
+  constructor(capability: string, message: string) {
+    super("run-state", capability, message);
+    this.name = "ClappRunStateError";
+  }
+}
+
 /** Renders an unknown thrown value without echoing secrets or stack traces. */
 export function describeError(error: unknown): string {
   if (error instanceof Error) return error.message;

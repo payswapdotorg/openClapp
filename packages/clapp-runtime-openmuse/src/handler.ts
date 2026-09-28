@@ -17,6 +17,28 @@ export const CLAPP_STAGES: readonly ClappStage[] = [
 ];
 
 /**
+ * The task.state key under which a CLAPP stage's StageRecord is checkpointed.
+ * The W1-001 convention, standardized by W1-004 as the documented run-semantics
+ * contract: the record is stage-scoped — it belongs to the task whose
+ * ClappTaskInput.stage equals the record's own stage.
+ */
+export const CLAPP_STAGE_STATE_KEY = "clappStage";
+
+/**
+ * The closed CLAPP RunEvent title vocabulary. Every stage transition the
+ * handler records uses exactly these templates, so consumers can match titles
+ * without pattern-guessing. The strings are byte-identical to the W1-001
+ * convention (W1-004 standardizes them as the exported contract).
+ */
+export const CLAPP_EVENT_TITLES = {
+  started: (stage: ClappStage): string => `CLAPP stage ${stage} started`,
+  succeeded: (stage: ClappStage): string => `CLAPP stage ${stage} succeeded`,
+  failed: (stage: ClappStage): string => `CLAPP stage ${stage} failed`,
+  cancelled: (stage: ClappStage): string => `CLAPP stage ${stage} cancelled`,
+  reconciled: (stage: ClappStage): string => `CLAPP stage ${stage} reconciled`,
+} as const;
+
+/**
  * Structural mirror of the OpenMuse AgentTask shape. The literal unions match
  * the substrate exactly so a handler produced here is structurally assignable
  * to the substrate's TaskHandler without importing server modules.
@@ -150,7 +172,7 @@ export interface ClappTaskHandlerOptions {
   readTasks?: (reconstructionId: string) => Promise<ClappTaskSnapshot[]>;
 }
 
-const STAGE_RECORD_KEY = "clappStage";
+const STAGE_RECORD_KEY = CLAPP_STAGE_STATE_KEY;
 const STAGE_STATUSES: readonly StageRecord["status"][] = [
   "pending",
   "running",
@@ -275,7 +297,7 @@ export function createClappTaskHandler(options: ClappTaskHandlerOptions): ClappT
       const recorded = existing.record.outputArtifactIds;
       await context.event(
         "status",
-        `CLAPP stage ${input.stage} reconciled`,
+        CLAPP_EVENT_TITLES.reconciled(input.stage),
         `A succeeded stage record was found for reconstruction ${input.reconstructionId}; execution was skipped and ${recorded.length} recorded artifact(s) were returned`,
       );
       return {
@@ -301,7 +323,7 @@ export function createClappTaskHandler(options: ClappTaskHandlerOptions): ClappT
     });
     await context.event(
       "step",
-      `CLAPP stage ${input.stage} started`,
+      CLAPP_EVENT_TITLES.started(input.stage),
       `reconstruction ${input.reconstructionId}, attempt ${task.attempts}`,
     );
 
@@ -349,7 +371,7 @@ async function succeedStage(
   });
   await context.event(
     "step",
-    `CLAPP stage ${input.stage} succeeded`,
+    CLAPP_EVENT_TITLES.succeeded(input.stage),
     `${outputArtifactIds.length} output artifact(s)`,
   );
   const result = `CLAPP stage ${input.stage} succeeded for reconstruction ${input.reconstructionId}: ${outputArtifactIds.length} output artifact(s)`;
@@ -378,7 +400,7 @@ async function failStage(
   const current = await context.checkpoint({
     state: { ...task.state, [STAGE_RECORD_KEY]: record },
   });
-  await context.event("error", `CLAPP stage ${input.stage} failed`, message);
+  await context.event("error", CLAPP_EVENT_TITLES.failed(input.stage), message);
   return {
     status: "failed",
     error: message,
@@ -425,7 +447,7 @@ async function abortStage(
           .event(
             input.reconstructionId,
             input.stage,
-            `CLAPP stage ${input.stage} cancelled`,
+            CLAPP_EVENT_TITLES.cancelled(input.stage),
             "Aborted with the task; no partial success was claimed",
           )
           .catch(() => {
