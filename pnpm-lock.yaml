@@ -174,9 +174,15 @@ importers:
         specifier: ~5.9.2
         version: 5.9.3
 
+  packages/clapp-benchmarks:
+    dependencies:
+      '@clapp/contracts':
+        specifier: workspace:*
+        version: link:../clapp-contracts
+
   packages/clapp-contracts: {}
 
-  packages/clapp-runtime-openmuse:
+  packages/clapp-intelligence:
     dependencies:
       '@clapp/contracts':
         specifier: workspace:*
@@ -188,7 +194,7 @@ importers:
         specifier: workspace:*
         version: link:../clapp-contracts
 
-  packages/clapp-intelligence:
+  packages/clapp-runtime-openmuse:
     dependencies:
       '@clapp/contracts':
         specifier: workspace:*
