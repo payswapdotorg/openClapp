@@ -37,6 +37,7 @@ import {
   ClappRuntimeError,
   describeError,
 } from "./errors.ts";
+import { CLAPP_STAGE_STATE_KEY, CLAPP_STAGES } from "./handler.ts";
 import type { BoundHandles, ClappBrowserSessionHandle, ClappComputerHandle } from "./handles.ts";
 import { bindHandles } from "./handles.ts";
 
@@ -137,22 +138,50 @@ function requireText(value: unknown, provider: string, capability: string, label
   return value;
 }
 
+/**
+ * Extracts the stage a checkpoint patch is scoped to when it carries a CLAPP
+ * stage record under the CLAPP state key. Stage records are stage-scoped
+ * (W1-004): a multi-stage run keeps one task per stage, and a stage's record
+ * belongs only to that stage's task. Other patches have no stage scope and
+ * remain run-level state shared by every task that carries the
+ * reconstruction.
+ */
+function stageScopeOfPatch(patch: Record<string, unknown>): string | undefined {
+  const record = patch[CLAPP_STAGE_STATE_KEY];
+  if (typeof record !== "object" || record === null) return undefined;
+  const stage = (record as { stage?: unknown }).stage;
+  if (typeof stage !== "string") return undefined;
+  return (CLAPP_STAGES as readonly string[]).includes(stage) ? stage : undefined;
+}
+
 function makeTaskProvider(bound: BoundHandles): TaskProvider {
   return {
     /**
-     * Merges a CLAPP-owned patch into the durable `state` of every task that
-     * carries the reconstruction. Each write is fenced by a compare-and-swap
-     * on the task's current (status, leaseId) so it never stompss an owner
+     * Merges a CLAPP-owned patch into the durable `state` of the tasks that
+     * carry the reconstruction. Each write is fenced by a compare-and-swap on
+     * the task's current (status, leaseId) so it never stomps an owner
      * transition that happened after the read. Patch keys are CLAPP-owned
-     * state keys; OpenMuse's own state keys are left untouched.
+     * state keys; OpenMuse's own state keys are left untouched. A patch that
+     * carries a CLAPP stage record under the stage state key is stage-scoped:
+     * it lands only on the tasks of that very stage, so the record of one
+     * stage in a multi-stage chain never overwrites a sibling stage's own
+     * record. Every other patch (run-level state, e.g. workspace
+     * registrations) still lands on every task that carries the
+     * reconstruction.
      */
     async checkpoint(reconstructionId, patch) {
-      const rows = await locateTasks(bound, reconstructionId);
+      const scope = stageScopeOfPatch(patch);
+      const rows = (await locateTasks(bound, reconstructionId)).filter(({ value }) => {
+        if (scope === undefined) return true;
+        return inputOf(value).stage === scope;
+      });
       if (rows.length === 0)
         throw new ClappRuntimeError(
           "tasks",
           "reconstruction",
-          `no durable OpenMuse task carries reconstructionId "${reconstructionId}"; the checkpoint has nowhere to land`,
+          scope === undefined
+            ? `no durable OpenMuse task carries reconstructionId "${reconstructionId}"; the checkpoint has nowhere to land`
+            : `no durable OpenMuse task carries reconstructionId "${reconstructionId}" at stage "${scope}"; the checkpoint has nowhere to land`,
         );
       let landed = 0;
       for (const { owner, value } of rows) {

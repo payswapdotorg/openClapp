@@ -17,6 +17,14 @@
  * registration) and wires the candidate-build orchestration methods —
  * chunked workspace seeding, bounded listing, restart-safe discovery,
  * build/test composition and produced-artifact harvesting.
+ *
+ * W1-004 adds the run artifact/recovery semantics: the run-level view is
+ * derived from the task chain of one reconstruction (readClappRunState), the
+ * restart planner (resumeAfterRestart), the run's artifact manifest
+ * (runArtifactLedger) and the stage-chain orchestrator
+ * (createStageChainHandler) that composes the W1-001 handler across the ten
+ * stages with a successor hint — while standardizing the W1 vocabulary
+ * (CLAPP_STAGE_STATE_KEY, CLAPP_EVENT_TITLES) as exported contracts.
  */
 
 export type {
@@ -47,6 +55,7 @@ export {
 export {
   ClappHandleNotProvidedError,
   ClappNotConfiguredError,
+  ClappRunStateError,
   ClappRuntimeError,
 } from "./errors.ts";
 export type {
@@ -63,6 +72,8 @@ export type {
   StageExecutorResult,
 } from "./handler.ts";
 export {
+  CLAPP_EVENT_TITLES,
+  CLAPP_STAGE_STATE_KEY,
   CLAPP_STAGES,
   createClappTaskHandler,
   detectClappTaskInput,
@@ -78,5 +89,20 @@ export type {
   ClappDbHandle,
   ClappFilesHandle,
 } from "./handles.ts";
+export type {
+  ClappRestartPlan,
+  ClappRunStageState,
+  ClappRunState,
+  ClappRunStatus,
+  ClappStageArtifacts,
+  StageChainHandler,
+  StageChainHandlerOptions,
+} from "./run.ts";
+export {
+  createStageChainHandler,
+  readClappRunState,
+  resumeAfterRestart,
+  runArtifactLedger,
+} from "./run.ts";
 export type { OpenMuseRuntime, OpenMuseRuntimeDependencies } from "./runtime.ts";
 export { candidateSeamOf, createOpenMuseRuntime } from "./runtime.ts";
