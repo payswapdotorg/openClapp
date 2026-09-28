@@ -129,3 +129,28 @@ export function createSynthesisEngine() {
     plan: planSynthesisApp,
   };
 }
+
+// ---------------------------------------------------------------------------
+// CLAPP-W3-006 additive block: bounded autonomous repair
+// ---------------------------------------------------------------------------
+
+export type {
+  RepairAbstention,
+  RepairAction,
+  RepairIterationRecord,
+  RepairMutation,
+  RepairMutationClass,
+  RepairMutationTarget,
+  RepairReplacement,
+  RepairReport,
+  RepairStopReason,
+  RepairSummary,
+  RunRepairLoopInput,
+} from "./repair.ts";
+export {
+  applyRepairActions,
+  classifyRepairActions,
+  runRepairLoop,
+  serializeRepairReport,
+  summarizeRepair,
+} from "./repair.ts";
