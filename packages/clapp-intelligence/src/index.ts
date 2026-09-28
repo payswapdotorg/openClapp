@@ -1,4 +1,6 @@
 import type { BehavioralIr, EvidenceBundle, ReconstructionSpec } from "@clapp/contracts";
+import type { ExplorationInput, ExplorationResult } from "./explore.ts";
+import { explore } from "./explore.ts";
 import { extractBehavioralIr } from "./extract.ts";
 
 export interface BehavioralModeler {
@@ -11,13 +13,17 @@ export interface PackageRetriever {
 
 /**
  * The CLAPP intelligence engine. model() extracts the BehavioralIr from an
- * observation bundle (CLAPP-W2-002); the remaining engine capabilities are
- * filled in by later work items.
+ * observation bundle (CLAPP-W2-002); explore() deepens an IR's journeys
+ * deterministically from its screens/evidence (CLAPP-W2-003); the remaining
+ * engine capabilities are filled in by later work items.
  */
 export function createIntelligenceEngine() {
   return {
     model(spec: ReconstructionSpec, evidence: EvidenceBundle): Promise<BehavioralIr> {
       return Promise.resolve(extractBehavioralIr({ bundle: evidence, spec }));
+    },
+    explore(input: ExplorationInput): ExplorationResult {
+      return explore(input);
     },
   };
 }
@@ -32,6 +38,19 @@ export type { DeserializedBehavioralIr } from "./serialize.ts";
 export { deserializeBehavioralIr, serializeBehavioralIr } from "./serialize.ts";
 export type { BehavioralIrValidationResult } from "./validate.ts";
 export { validateBehavioralIr } from "./validate.ts";
+
+// CLAPP-W2-003 — deterministic exploration and journey model.
+
+export type {
+  DeferredLink,
+  ExplorationAssumption,
+  ExplorationBudget,
+  ExplorationInput,
+  ExplorationResult,
+  ExplorationStats,
+  JourneyCoverage,
+} from "./explore.ts";
+export { composeExploredIr, explore, journeyDiffCoverage } from "./explore.ts";
 
 // CLAPP-W2-005 — package schema, registry and versioning.
 
