@@ -217,3 +217,15 @@ Acceptance: run-state derivation from the task chain (malformed entries counted,
 New risks: none flagged beyond the W1-001 baseline set; run-level state derives purely from the task chain (no second store — by design).
 Contract/ADR changes: none enacted.
 Next unblocked work: server-side stage orchestration (the chain's planNextTask consumers), W3-005/W3-006 (repair loop over durable runs), Phase 6 learning over run artifacts.
+
+## 2026-09-28 — Wave 4 Lane 2 (CLAPP-W2-003) integrated — WAVE 4 COMPLETE
+
+Date: 2026-09-28
+Phase: Phase 3 (exploration and journey model) — wave 4 lane 2; wave 4 now fully integrated.
+Work items: CLAPP-W2-003 — deterministic exploration and journey model in @clapp/intelligence.
+Integrated commits: 43841d4 (worker, single commit on base 8c55320; bundle sha256 b2e36ae7… verified, 3/3 per-file sha256s match) → merge.
+Tests: TL env 293/291/2 — the same pre-existing file-level artifacts; W2-003 suite 8/8 standalone; typecheck 0; lint 0; build:server OK; lockfile unchanged.
+Acceptance: all 8 required named tests PASS (determinism incl. seed tie-breaking semantics; journeys follow only observed links with unobserved targets as assumptions+deferred; assertions cite evidence and prove only text/url/title; honest budget truncation; composed IR validates and stays diffable with evidence refs untouched; purity; complete journey diff coverage; stable+sensitive feature digest).
+New risks: exploration depth is bounded by the page-text evidence channel (link discovery from observed text — richer discovery waits for DOM-structure channels); journey tie-breaking is seed-controlled by design.
+Contract/ADR changes: none enacted.
+Next unblocked work: W2-004 (archetype classifier — exploration features now available), W3-005 (diff dimensions), W2-007 (retrieval/compat graph), server-side CLAPP orchestration.

@@ -20,13 +20,13 @@ openClapp
 ├── 🟡 CLAPP foundation
 │   ├── ✅ frozen contracts (v0.1, TL-0 verified)
 │   ├── ✅ OpenMuse runtime adapter (W1-001, wave 1; execution seam W1-003, wave 2)
-│   ├── 🟡 CLAPP task kind/state/events (run semantics W1-004, wave 4; server orchestration next)
+│   ├── ✅ CLAPP task kind/state/events (W1-004, wave 4)
 │   └── ⬜ CLAPP repositories
 │
 ├── ⬜ Web reconstruction MVP
 │   ├── ⬜ target authorization
 │   ├── ✅ observation/evidence (W1-002, wave 2)
-│   ├── 🟡 exploration (benchmarks W1-005; IR extraction W2-002; W2-003 next)
+│   ├── ✅ exploration (W2-003, wave 4)
 │   ├── ✅ Behavioral IR (W2-001, wave 1)
 │   ├── ✅ synthesis plan (W3-001, wave 1)
 │   ├── ✅ candidate generation (W3-002, wave 3)
