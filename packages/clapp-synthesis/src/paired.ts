@@ -3,22 +3,47 @@ import type { DiffFinding, DiffReport } from "@clapp/contracts";
 import { canonicalJson, isPlainObject } from "./canonical.ts";
 import { contentHash } from "./hash.ts";
 import {
+  compareSides,
+  dimensionArtifactsOf,
+  extractVisualInventory,
+  networkCaptureOf,
+  normalizeDimensions,
+  type PairedDimensions,
+  type PairedNetworkCapture,
+  type PairedVisualCapture,
+} from "./paired-diff.ts";
+
+// The W3-005 dimension types are re-exported here — this module is the
+// package's capture-type hub consumers import from.
+export type {
+  PairedDimensions,
+  PairedNetworkCapture,
+  PairedNetworkHeader,
+  PairedVisualCapture,
+  PairedVisualControl,
+  PairedVisualHeading,
+  PairedVisualImage,
+  PairedVisualLink,
+} from "./paired-diff.ts";
+
+import {
   apiBlockedFinding,
   artifactsOfCapture,
   bothPagesErrorBlockedFinding,
-  compareSidesSemantically,
   pageArtifact,
   pageBlockedFinding,
   startBlockedFinding,
 } from "./paired-compare.ts";
 
 /**
- * The reference/candidate paired runner (CLAPP-W3-004): the M4 parity
- * engine's runner half. The same journey is driven against a reference side
- * and a candidate side — both pure in-process loopback services — and the
- * captured evidence is compared into a deterministic, content-addressed
- * DiffReport with the semantic and state dimensions (the visual and network
- * dimensions arrive in W3-005 on top of the same capture/compare seam).
+ * The reference/candidate paired runner (CLAPP-W3-004, dimensions completed by
+ * CLAPP-W3-005): the M4 parity engine's runner half. The same journey is
+ * driven against a reference side and a candidate side — both pure
+ * in-process loopback services — and the captured evidence is compared into a
+ * deterministic, content-addressed DiffReport across the four M4 minimum
+ * report dimensions: semantic, state, visual and network (the latter two via
+ * the paired-diff core — a derived visual inventory of the served HTML and
+ * the deterministic protocol facts of every response).
  *
  * Both sides are taken through the STRUCTURAL {@link PairedSide} interface
  * declared here: the benchmark harness (createBenchmarkHarness(app).start()
@@ -31,7 +56,9 @@ import {
  * regression tracking"): the DiffReport is a pure function of the served
  * content — ids are content-hashed, no timestamps, no ports, no durations —
  * while the honestly nondeterministic transport facts ride in the separate
- * `transport` field of the returned envelope.
+ * `transport` field of the returned envelope. The optional dimensions input
+ * (fail-closed normalized) lets verification policy disable the visual or
+ * network channel — an honest absence, never a fabricated equivalence.
  */
 
 // ---------------------------------------------------------------------------
@@ -103,6 +130,10 @@ export type PairedPageCapture = {
   bodyChars: number;
   anchorsFound: string[];
   anchorsMissing: string[];
+  /** The derived visual inventory (W3-005) — present when the visual dimension runs. */
+  visual?: PairedVisualCapture;
+  /** The deterministic protocol facts (W3-005) — present when the network dimension runs. */
+  network?: PairedNetworkCapture;
 };
 
 /** What one side's API-check fetch captured. */
@@ -119,6 +150,8 @@ export type PairedApiCapture = {
   parsedKeyDigest: string | null;
   /** The check's expectKey, or null when the check compares the whole body. */
   expectKey: string | null;
+  /** The deterministic protocol facts (W3-005) — present when the network dimension runs. */
+  network?: PairedNetworkCapture;
 };
 
 /** The pre/post-journey state digests of one side (canonical-JSON sha256). */
@@ -143,11 +176,11 @@ export type PairedArtifact = {
   /** Content-addressed id: `pa-` + sha256(artifact body), 16 hex chars. */
   id: string;
   side: PairedSideLabel;
-  /** "page" (route body), "api" (endpoint body) or "state" (snapshot digest). */
-  kind: "page" | "api" | "state";
+  /** "page" | "api" | "state" | "visual" | "network" — the evidence channel. */
+  kind: "page" | "api" | "state" | "visual" | "network";
   /** The route path, the API path, or "state://pre" / "state://post". */
   routePath: string;
-  /** sha256 of the captured bytes (or of the canonical state snapshot). */
+  /** sha256 of the captured bytes (or of the canonical capture form). */
   digest: string;
   /** HTTP status of the page/api capture. */
   status?: number;
@@ -191,6 +224,8 @@ export type PairedSuiteResult = {
   findingsByDimension: {
     semantic: DiffFinding[];
     state: DiffFinding[];
+    visual: DiffFinding[];
+    network: DiffFinding[];
   };
   journeys: PairedJourneySummary[];
   envelopes: PairedRunEnvelope[];
@@ -203,6 +238,12 @@ export type RunPairedJourneyInput = {
   candidate: PairedSide;
   /** Defaults to `paired:<journey.id>`; carried into the report verbatim. */
   reconstructionId?: string;
+  /**
+   * The optional diff dimensions (W3-005): visual and network default to on;
+   * a disabled dimension is an honest absence (no capture, no findings, no
+   * artifacts). Fail-closed normalized before anything starts.
+   */
+  dimensions?: Partial<PairedDimensions>;
 };
 
 /** The input of {@link runPairedSuite}. */
@@ -212,6 +253,8 @@ export type RunPairedSuiteInput = {
   candidate: PairedSide;
   /** Defaults to "paired-suite"; shared by every per-journey report. */
   reconstructionId?: string;
+  /** The optional diff dimensions, shared by every journey (see RunPairedJourneyInput). */
+  dimensions?: Partial<PairedDimensions>;
 };
 
 // ---------------------------------------------------------------------------
@@ -425,6 +468,7 @@ function tryParseJson(text: string): { ok: true; value: unknown } | { ok: false 
 async function fetchPageCapture(
   baseUrl: string,
   journey: PairedJourney,
+  dimensions: PairedDimensions,
 ): Promise<PairedPageCapture> {
   const response = await fetch(`${baseUrl}${journey.routePath}`);
   const bytes = new Uint8Array(await response.arrayBuffer());
@@ -435,7 +479,7 @@ async function fetchPageCapture(
     if (text.includes(anchor)) anchorsFound.push(anchor);
     else anchorsMissing.push(anchor);
   }
-  return {
+  const capture: PairedPageCapture = {
     status: response.status,
     contentType: (response.headers.get("content-type") ?? "").toLowerCase().trim(),
     bodyDigest: sha256Bytes(bytes),
@@ -443,10 +487,19 @@ async function fetchPageCapture(
     anchorsFound,
     anchorsMissing,
   };
+  if (dimensions.visual) capture.visual = extractVisualInventory(text);
+  if (dimensions.network) {
+    capture.network = networkCaptureOf(response.headers, response.redirected);
+  }
+  return capture;
 }
 
 /** Fetches one API check on one side and captures the evidence. */
-async function fetchApiCapture(baseUrl: string, check: PairedApiCheck): Promise<PairedApiCapture> {
+async function fetchApiCapture(
+  baseUrl: string,
+  check: PairedApiCheck,
+  dimensions: PairedDimensions,
+): Promise<PairedApiCapture> {
   const response = await fetch(`${baseUrl}${check.path}`);
   const bytes = new Uint8Array(await response.arrayBuffer());
   const text = Buffer.from(bytes).toString("utf8");
@@ -461,13 +514,17 @@ async function fetchApiCapture(baseUrl: string, check: PairedApiCheck): Promise<
           : undefined;
     if (target !== undefined) parsedKeyDigest = contentHash(target);
   }
-  return {
+  const capture: PairedApiCapture = {
     path: check.path,
     status: response.status,
     bodyDigest: sha256Bytes(bytes),
     parsedKeyDigest,
     expectKey: check.expectKey ?? null,
   };
+  if (dimensions.network) {
+    capture.network = networkCaptureOf(response.headers, response.redirected);
+  }
+  return capture;
 }
 
 /**
@@ -536,9 +593,10 @@ function reportIdOf(report: Omit<DiffReport, "id">): string {
  * (status >= 400) on BOTH sides blocks the journey: the verdict is
  * "blocked" with exactly one honest critical finding (deterministic
  * errorKind facts, never raw messages) and no fabricated diffs. Otherwise
- * the findings come from the pure comparison core (semantic + state
- * dimensions) and the verdict is "divergent" when any finding is minor or
- * worse, "equivalent" when findings are empty or info-only.
+ * the findings come from the pure four-dimension comparison core (semantic,
+ * state, visual, network — CLAPP-W3-005) and the verdict is "divergent" when
+ * any finding is minor or worse, "equivalent" when findings are empty or
+ * info-only.
  *
  * The report is a pure function of the served content (byte-identical across
  * runs of identical sides); the transport field carries the honestly
@@ -546,14 +604,16 @@ function reportIdOf(report: Omit<DiffReport, "id">): string {
  * the content-addressed evidence inventory the findings cite.
  *
  * Purity: the journey input is structuredClone-snapshotted and validated
- * before anything starts; the caller's objects are never mutated. Both
- * sides are re-bound fail-closed (parameter position decides the label),
- * and every started side is stopped again — even on a blocked run.
+ * before anything starts; the caller's objects are never mutated. The
+ * optional dimensions input is fail-closed normalized before anything
+ * starts. Both sides are re-bound fail-closed (parameter position decides the
+ * label), and every started side is stopped again — even on a blocked run.
  */
 export async function runPairedJourney(input: RunPairedJourneyInput): Promise<PairedRunEnvelope> {
   const startedAtMs = Date.now();
   const journey = normalizePairedJourney(input.journey);
   const reconstructionId = normalizeReconstructionId(input.reconstructionId, journey.id);
+  const dimensions = normalizeDimensions(input.dimensions);
   const reference = bindPairedSide(input.reference, "reference");
   const candidate = bindPairedSide(input.candidate, "candidate");
 
@@ -586,7 +646,7 @@ export async function runPairedJourney(input: RunPairedJourneyInput): Promise<Pa
       const candidatePre = snapshotStateOf(candidate);
 
       try {
-        referencePage = await fetchPageCapture(referenceHandle.baseUrl, journey);
+        referencePage = await fetchPageCapture(referenceHandle.baseUrl, journey, dimensions);
       } catch (error) {
         blocked = pageBlockedFinding(journey, "reference", error, []);
       }
@@ -594,7 +654,7 @@ export async function runPairedJourney(input: RunPairedJourneyInput): Promise<Pa
         const evidenceSoFar = [pageArtifact("reference", journey.routePath, referencePage)];
         for (const check of journey.apiChecks ?? []) {
           try {
-            referenceApis.push(await fetchApiCapture(referenceHandle.baseUrl, check));
+            referenceApis.push(await fetchApiCapture(referenceHandle.baseUrl, check, dimensions));
           } catch (error) {
             blocked = apiBlockedFinding(check, "reference", error, evidenceSoFar);
             break;
@@ -617,7 +677,7 @@ export async function runPairedJourney(input: RunPairedJourneyInput): Promise<Pa
             ? []
             : [pageArtifact("reference", journey.routePath, referencePage)];
         try {
-          candidatePage = await fetchPageCapture(candidateHandle.baseUrl, journey);
+          candidatePage = await fetchPageCapture(candidateHandle.baseUrl, journey, dimensions);
         } catch (error) {
           blocked = pageBlockedFinding(journey, "candidate", error, captured);
         }
@@ -646,7 +706,7 @@ export async function runPairedJourney(input: RunPairedJourneyInput): Promise<Pa
         ];
         for (const check of journey.apiChecks ?? []) {
           try {
-            candidateApis.push(await fetchApiCapture(candidateHandle.baseUrl, check));
+            candidateApis.push(await fetchApiCapture(candidateHandle.baseUrl, check, dimensions));
           } catch (error) {
             blocked = apiBlockedFinding(check, "candidate", error, evidenceSoFar);
             break;
@@ -695,7 +755,7 @@ export async function runPairedJourney(input: RunPairedJourneyInput): Promise<Pa
   if (blocked !== null) {
     findings = [blocked];
   } else if (referenceCapture !== null && candidateCapture !== null) {
-    findings = compareSidesSemantically(referenceCapture, candidateCapture);
+    findings = compareSides(referenceCapture, candidateCapture);
   } else {
     // Unreachable by construction: a missing page capture always implies a
     // blocked finding above. Kept as an honest empty fallback, never a guess.
@@ -727,8 +787,12 @@ export async function runPairedJourney(input: RunPairedJourneyInput): Promise<Pa
   };
 
   const artifacts: PairedArtifact[] = [
-    ...(referenceCapture !== null ? artifactsOfCapture(referenceCapture) : []),
-    ...(candidateCapture !== null ? artifactsOfCapture(candidateCapture) : []),
+    ...(referenceCapture !== null
+      ? [...artifactsOfCapture(referenceCapture), ...dimensionArtifactsOf(referenceCapture)]
+      : []),
+    ...(candidateCapture !== null
+      ? [...artifactsOfCapture(candidateCapture), ...dimensionArtifactsOf(candidateCapture)]
+      : []),
   ];
 
   return {
@@ -758,12 +822,13 @@ function worstVerdict(verdicts: PairedVerdict[]): PairedVerdict {
  * Runs every journey sequentially (input order — deterministic), one paired
  * run per journey, and aggregates: the worst verdict (a side that cannot
  * start fails the whole suite closed as "blocked"), the findings grouped by
- * dimension, the per-journey summaries, and the full envelope set.
+ * dimension (semantic, state, visual, network — the four M4 minimum report
+ * dimensions), the per-journey summaries, and the full envelope set.
  *
- * Every journey is normalized (and the whole set validated) BEFORE any side
- * starts, so an invalid journey fails closed with no partial runs. The sides
- * are started and stopped once per journey — fresh incarnations, no state
- * reuse assumptions.
+ * Every journey is normalized (and the whole set, plus the shared dimensions
+ * input, validated) BEFORE any side starts, so an invalid input fails closed
+ * with no partial runs. The sides are started and stopped once per journey —
+ * fresh incarnations, no state reuse assumptions.
  */
 export async function runPairedSuite(input: RunPairedSuiteInput): Promise<PairedSuiteResult> {
   const reconstructionId = normalizeReconstructionId(input.reconstructionId, "suite");
@@ -771,6 +836,7 @@ export async function runPairedSuite(input: RunPairedSuiteInput): Promise<Paired
     throw new TypeError("journeys must be an array of PairedJourney values");
   }
   const journeys = input.journeys.map((journey) => normalizePairedJourney(journey));
+  const dimensions = normalizeDimensions(input.dimensions);
 
   const envelopes: PairedRunEnvelope[] = [];
   const summaries: PairedJourneySummary[] = [];
@@ -780,6 +846,7 @@ export async function runPairedSuite(input: RunPairedSuiteInput): Promise<Paired
       reference: input.reference,
       candidate: input.candidate,
       reconstructionId,
+      dimensions,
     });
     envelopes.push(envelope);
     summaries.push({
@@ -792,16 +859,20 @@ export async function runPairedSuite(input: RunPairedSuiteInput): Promise<Paired
 
   const semantic: DiffFinding[] = [];
   const state: DiffFinding[] = [];
+  const visual: DiffFinding[] = [];
+  const network: DiffFinding[] = [];
   for (const envelope of envelopes) {
     for (const each of envelope.report.findings) {
       if (each.dimension === "semantic") semantic.push(each);
       else if (each.dimension === "state") state.push(each);
+      else if (each.dimension === "visual") visual.push(each);
+      else if (each.dimension === "network") network.push(each);
     }
   }
 
   return {
     verdict: worstVerdict(envelopes.map((envelope) => envelope.report.verdict)),
-    findingsByDimension: { semantic, state },
+    findingsByDimension: { semantic, state, visual, network },
     journeys: summaries,
     envelopes,
   };

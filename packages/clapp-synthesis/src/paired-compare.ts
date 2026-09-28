@@ -13,8 +13,11 @@ import type {
 /**
  * The pure comparison core of the reference/candidate paired runner
  * (CLAPP-W3-004): evidence addressing plus the semantic and state dimension
- * logic, isolated from all I/O so W3-005 can reuse the same pattern across
- * the visual and network dimensions.
+ * logic, isolated from all I/O. CLAPP-W3-005's paired-diff.ts reuses this
+ * module's discipline (content-addressed findings, the deterministic finding
+ * order, the one-side-only key universe) for the visual and network
+ * dimensions, and composes this module's semantic/state comparison into the
+ * four-dimension {@link compareSides} entry point.
  *
  * Everything in this module is a pure function of its inputs: no servers, no
  * fetches, no clocks, no randomness. Findings are content-addressed (ids are
@@ -105,7 +108,7 @@ function finding(input: Omit<DiffFinding, "id">): DiffFinding {
 }
 
 /** Deterministic finding order: dimension, then anchor, then id. */
-function sortFindings(findings: DiffFinding[]): DiffFinding[] {
+export function sortFindings(findings: DiffFinding[]): DiffFinding[] {
   return [...findings].sort((a, b) => {
     if (a.dimension !== b.dimension) return a.dimension < b.dimension ? -1 : 1;
     if (a.anchor !== b.anchor) return a.anchor < b.anchor ? -1 : 1;
@@ -238,9 +241,10 @@ export function bothPagesErrorBlockedFinding(
 
 /**
  * Compares one reference capture against one candidate capture into the
- * semantic and state dimension findings — the pure core of
- * {@link runPairedJourney} and the seam W3-005 reuses for the visual and
- * network dimensions.
+ * semantic and state dimension findings — the W3-004 half of the pure
+ * comparison core, still exported unchanged for direct consumers; the
+ * CLAPP-W3-005 four-dimension entry point is {@link compareSides} in
+ * paired-diff.ts (this function plus the visual and network dimensions).
  *
  * Semantic dimension (per route and per API check):
  * - an anchor present on one side but missing on the other is a "major"

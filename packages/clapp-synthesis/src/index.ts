@@ -37,8 +37,11 @@ export type {
   PairedApiCapture,
   PairedApiCheck,
   PairedArtifact,
+  PairedDimensions,
   PairedJourney,
   PairedJourneySummary,
+  PairedNetworkCapture,
+  PairedNetworkHeader,
   PairedPageCapture,
   PairedRunEnvelope,
   PairedSide,
@@ -48,6 +51,11 @@ export type {
   PairedSuiteResult,
   PairedTransport,
   PairedVerdict,
+  PairedVisualCapture,
+  PairedVisualControl,
+  PairedVisualHeading,
+  PairedVisualImage,
+  PairedVisualLink,
   RunPairedJourneyInput,
   RunPairedSuiteInput,
   StartedPairedSide,
@@ -61,7 +69,19 @@ export {
   serializePairedRun,
   serializePairedSuite,
 } from "./paired.ts";
-export { compareSidesSemantically } from "./paired-compare.ts";
+export { compareSidesSemantically, sortFindings } from "./paired-compare.ts";
+export {
+  compareSides,
+  compareSidesNetwork,
+  compareSidesVisually,
+  dimensionArtifactsOf,
+  extractVisualInventory,
+  NETWORK_HEADER_ALLOWLIST,
+  networkArtifact,
+  networkCaptureOf,
+  normalizeDimensions,
+  visualArtifact,
+} from "./paired-diff.ts";
 export type {
   DerivedAssumption,
   PlanComponent,
