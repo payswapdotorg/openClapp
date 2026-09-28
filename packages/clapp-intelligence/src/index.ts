@@ -144,3 +144,28 @@ export {
   promoteVerified,
   registerCandidates,
 } from "./extract-package.ts";
+
+// CLAPP-W2-007 — package retrieval and the compatibility graph.
+
+export type {
+  CompatEdge,
+  CompatEdgeKind,
+  CompatExplanation,
+  CompatGraph,
+  CompatNeighborMatch,
+  CompatNode,
+  CompatNodeIdentity,
+} from "./retrieval.ts";
+export {
+  buildCompatGraph,
+  explainCompatibility,
+  RETRIEVAL_WEIGHTS,
+  type RetrievalEntry,
+  RetrievalError,
+  type RetrievalErrorCode,
+  type RetrievalQuery,
+  type RetrievalResult,
+  type RetrievalSummary,
+  retrievalSummary,
+  retrievePackages,
+} from "./retrieval.ts";
