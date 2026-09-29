@@ -39,7 +39,7 @@ openClapp
 │   ├── ✅ package extraction (W2-006, wave 6)
 │   ├── ✅ retrieval (W2-007, wave 7)
 │   ├── ✅ compatibility graph (W2-007, wave 7)
-│   ├── ⬜ failure memory
+│   ├── ✅ failure memory (W2-008, wave 8)
 │   └── ⬜ promotion/evaluation
 │
 ├── ⬜ App archetype factory
