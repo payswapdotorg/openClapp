@@ -1404,3 +1404,14 @@ function capabilityLabel(value: string) {
   };
   return names[scope] || scope;
 }
+
+// ---------------------------------------------------------------------------
+// CLAPP (CLAPP-W3-007) — additive registration of the CLAPP UX surfaces.
+//
+// The screens themselves live in ./clapp-screens and derive everything from
+// the pure view-models in ./clapp-view-models, consuming only the /api/clapp
+// HTTP surface through the app's own api conventions. This block registers
+// them here so the app's screen consumers can render them like any other
+// screen; nothing above this line changes.
+// ---------------------------------------------------------------------------
+export { ClappDetailScreen, ClappListScreen, ClappScreen } from "./clapp-screens";
