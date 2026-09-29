@@ -35,6 +35,7 @@ import {
 import { DelegateSheet, NotificationsSheet, TaskDetail } from "./agent-ui";
 import BrowserConsole from "./BrowserConsole";
 import { browserAddress, browserSite } from "./browser-address";
+import { ClappScreen } from "./clapp-screens";
 import { ComputerSheet } from "./computer";
 import DateTimeEditor from "./DateTimeEditor";
 import { localDateTime, zonedInstant } from "./date-time";
@@ -60,6 +61,7 @@ import { type Detail, useWorkspace } from "./workspace";
 export function Details({ detail }: { detail: Detail }) {
   const { close, navigate } = useWorkspace();
   if (detail.type === "computer") return <ComputerSheet />;
+  if (detail.type === "clapp") return <ClappScreen />;
   if (detail.type === "task") return <TaskDetail taskId={detail.taskId} />;
   if (detail.type === "delegate") return <DelegateSheet />;
   if (detail.type === "notifications") return <NotificationsSheet />;

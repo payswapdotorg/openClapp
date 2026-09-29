@@ -7,6 +7,7 @@ import {
   FileText,
   Globe2,
   Heart,
+  Layers,
   Lightbulb,
   ListChecks,
   Mail,
@@ -1752,6 +1753,13 @@ export function AppsScreen() {
             />
           ))}
       </Card>
+      {/* CLAPP (CLAPP-W3-007) — additive entry to the CLAPP UX surfaces. */}
+      <LinkRow
+        icon={Layers}
+        title="CLAPP reconstructions"
+        detail="Authorized application reconstructions — stages, artifacts and control"
+        onPress={() => open({ type: "clapp" })}
+      />
       <Button onPress={() => setSettings(!settings)}>
         {settings ? "Close agent settings" : "Personality & memory"}
       </Button>
