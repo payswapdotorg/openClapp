@@ -169,3 +169,39 @@ export {
   retrievalSummary,
   retrievePackages,
 } from "./retrieval.ts";
+
+// CLAPP-W2-008 — failure memory and repair-pattern learning.
+
+export type {
+  FailureAbstentionRecord,
+  FailureIterationRecord,
+  FailureMemoryDigest,
+  FailureMemoryDigestInput,
+  FailureMemoryFailure,
+  FailureMemoryInput,
+  FailureMemoryRecord,
+  FailureMemoryRepair,
+  FailureMemoryResult,
+  FailureMutationClass,
+  FailureRecurrence,
+  FailureRecurrenceSummary,
+  FailureRepairOutcome,
+  FailureStopReason,
+  FailureVerdict,
+  InsufficientEvidenceSignature,
+  InvalidRecordError,
+  RepairHint,
+  RepairHintResult,
+  RepairPattern,
+  RepairPatternSummary,
+  UnmatchedFinding,
+} from "./failure-memory.ts";
+export {
+  aggregateRepairPatterns,
+  buildFailureMemoryRecord,
+  countFailureRecurrence,
+  FAILURE_MEMORY_ID_PREFIX,
+  failureMemoryDigest,
+  REPAIR_PATTERN_EVIDENCE_MINIMUM,
+  suggestRepairHints,
+} from "./failure-memory.ts";
