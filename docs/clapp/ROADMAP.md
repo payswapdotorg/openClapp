@@ -35,10 +35,10 @@ openClapp
 │
 ├── ⬜ Learning system
 │   ├── ✅ package schema (W2-005, wave 2)
-│   ├── ⬜ registry/versioning
+│   ├── ✅ registry/versioning (W2-005, wave 2)
 │   ├── ✅ package extraction (W2-006, wave 6)
 │   ├── ✅ retrieval (W2-007, wave 7)
-│   ├── ⬜ compatibility graph
+│   ├── ✅ compatibility graph (W2-007, wave 7)
 │   ├── ⬜ failure memory
 │   └── ⬜ promotion/evaluation
 │
