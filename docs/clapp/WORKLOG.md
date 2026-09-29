@@ -316,3 +316,11 @@ main 0c3aae6 (battery 342/341/1). Immortality ring re-armed 14:34:57
 is still closed — strain now ~25.5h continuous). Ring grinds autonomously;
 next: marker → harvest → battery → review → merge --no-ff. W2-008 prompt
 staged for serial dispatch after W3-007 lands.
+
+## 2026-09-29 — TL resident note: sentinel multi-chat adoption patch; strain deepens
+
+Ring update: adoption probe now scans ALL staged chats (not just the last).
+Degradation note: since ~16:55 the platform rejects chat creation outright
+(strain >29h continuous). ROADMAP under-ticks corrected (fdbfd9a):
+registry/versioning + compatibility graph ticked. Ring grinds; next landing
+triggers harvest → battery → review → merge.
