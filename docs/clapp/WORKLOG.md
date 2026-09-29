@@ -324,3 +324,11 @@ Degradation note: since ~16:55 the platform rejects chat creation outright
 (strain >29h continuous). ROADMAP under-ticks corrected (fdbfd9a):
 registry/versioning + compatibility graph ticked. Ring grinds; next landing
 triggers harvest → battery → review → merge.
+
+## 2026-09-29 — W3-007 worker LIVE (chat 72ee147c)
+
+The ~31h capacity strain broke ~18:55; the patched multi-chat adoption probe
+caught round-4 chat 72ee147c generating at 18:59 (the last-registered chat was
+round 6's — the old probe would have missed it). Marker written; completion
+watch armed 19:00:57. Worker on the re-based prompt (base 0c3aae6, battery
+342/341/1). Harvest follows the completion report.
