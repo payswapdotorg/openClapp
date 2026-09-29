@@ -332,3 +332,16 @@ caught round-4 chat 72ee147c generating at 18:59 (the last-registered chat was
 round 6's — the old probe would have missed it). Marker written; completion
 watch armed 19:00:57. Worker on the re-based prompt (base 0c3aae6, battery
 342/341/1). Harvest follows the completion report.
+
+## 2026-09-29 — Wave 7 Lane 2 (CLAPP-W3-007) integrated — WAVE 7 COMPLETE
+
+Date: 2026-09-29
+Phase: Phase 8 (product hardening — CLAPP UX surfaces) — wave 7 lane 2; wave 7 now fully integrated.
+Work items: CLAPP-W3-007 — CLAPP UX surfaces (apps/mobile/src/clapp-view-models.ts: pure deterministic view-models — reconstructionListFrom / stageChainFrom / controlActionsFor / artifactLinksFrom / clappCreateRequestFrom / refreshPolicyFrom / advanceStateFrom / clappErrorText; apps/mobile/src/clapp-screens.tsx: ClappScreen navigator + list/create/detail surfaces over /api/clapp).
+Dispatch note: FIVE dispatch generations under the longest capacity strain on record (~31h continuous, Sep 28 13:00 → Sep 29 ~18:55). The winning chat (72ee147c, round 4) landed in a brief window at 18:24, fired at ~18:55, and was caught by the sentinel's NEW multi-chat adoption probe (patched this session — probes ALL staged chats, not just the last registered; the last-registered chat was round 6's, so the old probe would have missed the worker). Worker completed the full run in ~35 minutes once fired.
+Integrated commits: worker branch clapp-w3-007 head 563ce4a on base 0c3aae6 (bundle sha256 b477eac8… verified EXACT; 7/7 per-file sha256s verified: clapp-view-models.ts, clapp-screens.tsx, clapp-w3-007-ux.test.ts NEW; screens.tsx +11, workspace.tsx +1, details.tsx +2, agent-ui.tsx +8 additive).
+Tests: 8/8 named tests (list view-model determinism; stage-chain honest status mapping incl. unreported→not_started and foreign→unknown; control actions from stage statuses incl. paused-runs and terminal refusals; artifact links only with signed contentUrls; create request body matches the frozen API contract; explicit polling policy; failure surfaces server messages verbatim; purity — byte-identical outputs). TL battery on merged main: typecheck 0, lint 0 (211 files), build:server OK, full suite 350/348/2 (the 2 pre-existing file-level artifacts — the exact same set at base 0c3aae6: 342/340/2; zero new failures; +8 new tests all passing), W3-007 suite 8/8 standalone.
+Acceptance: the app's Apps screen reaches the CLAPP surfaces (additive LinkRow); list/create/detail render exactly what the /api/clapp routes report — the frozen ten-stage chain, honest unreported/unknown/foreign-stage handling, control actions gated by the server's own refusal rules, artifacts opened only by their signed contentUrls, refresh polling explicit (4s active / manual terminal), every action followed by a real re-fetch; the create form emits the exact strict ReconstructionSpec the server's zod validates.
+New risks: the wire interfaces restate the API shapes locally (the routes are not exported from apps/server for type-sharing — a cross-package contracts extraction is a future refinement); polling interval is fixed at 4000ms (no backoff); no list-level pagination yet.
+Contract/ADR changes: none.
+Next unblocked work: W2-008 (failure memory), W2-009 (continuous-learning benchmarks), W3-003 (generated acceptance suite) — wave 8.

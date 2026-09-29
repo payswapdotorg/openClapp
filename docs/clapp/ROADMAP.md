@@ -49,7 +49,7 @@ openClapp
 │   └── ⬜ measurable compounding improvement
 │
 ├── ⬜ Product hardening
-│   ├── ⬜ CLAPP UX
+│   ├── ✅ CLAPP UX (W3-007, wave 7)
 │   ├── ⬜ multi-user hardening
 │   ├── ⬜ isolation/egress controls
 │   ├── ⬜ audit/retention
