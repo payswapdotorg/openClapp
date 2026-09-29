@@ -306,3 +306,13 @@ Acceptance: retrieval over a populated registry is deterministic, explained, fai
 New risks: compatibility is derived from declared metadata only (category/capabilities/targets) — semantic compatibility (actual interface fit) waits for richer package interface contracts; ranking weights are the documented defaults (deterministic, revisitable).
 Contract/ADR changes: none.
 Next unblocked work: W3-007 (UX surfaces — in flight), W2-008 (failure memory), W2-009 (continuous-learning benchmarks).
+
+## 2026-09-29 — TL resident note: post-reset W3-007e re-dispatch armed
+
+Sandbox reset #2 (12:04 UTC) fully recovered: operator JWT re-captured (14:30),
+byte-exact W3-007 prompt extracted from landed chat 3364489b and re-based to
+main 0c3aae6 (battery 342/341/1). Immortality ring re-armed 14:34:57
+(clapp-w3-007e; sentinel round 1 landed chat ab6bbbe8 but the capacity gate
+is still closed — strain now ~25.5h continuous). Ring grinds autonomously;
+next: marker → harvest → battery → review → merge --no-ff. W2-008 prompt
+staged for serial dispatch after W3-007 lands.
