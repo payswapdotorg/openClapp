@@ -256,7 +256,15 @@ export function generateCandidateApp(plan: SynthesisPlan): GeneratedApp {
     ...componentFiles,
     {
       path: "journeys.test.ts",
-      content: emitJourneysTest({ acceptance, apiKeys, expectedApi: store }),
+      // CLAPP-W3-003: the full webRoutes list deepens the suite with additive
+      // route-coverage tests for every plan route the acceptance selection
+      // does not pin (counts and anchors only — never step actions).
+      content: emitJourneysTest({
+        acceptance,
+        routes: webRoutes,
+        apiKeys,
+        expectedApi: store,
+      }),
     },
   ];
   files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));

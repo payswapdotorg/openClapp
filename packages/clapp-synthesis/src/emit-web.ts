@@ -368,9 +368,19 @@ export function emitJourneyPage(route: WebRouteEntry): string {
  * plus the index-route test, all executed against the generated server in
  * process over loopback. Expected page anchors and API seeds are embedded at
  * generation time, so the suite both replays and pins the plan.
+ *
+ * CLAPP-W3-003 deepening: every plan route the acceptance selection does not
+ * pin also gains an additive `route coverage: <journeyId>` test asserting the
+ * same derivable anchors (200, text/html, data-journey, the route name and
+ * data-step-count), so full-route coverage is pinned while the acceptance
+ * test names and bodies stay byte-identical to the W3-002 contract. Route
+ * coverage anchors are keyed by route path (unique per route), so duplicate
+ * journeyIds can never collapse two routes' anchors. Step counts are the
+ * plan routes' observed counts; the suite never invents step actions.
  */
 export function emitJourneysTest(input: {
   acceptance: WebAcceptanceJourney[];
+  routes: WebRouteEntry[];
   apiKeys: string[];
   expectedApi: Record<string, unknown>;
 }): string {
@@ -380,6 +390,16 @@ export function emitJourneysTest(input: {
     routePaths[journey.journeyId] = journey.path;
     htmlAnchors[journey.journeyId] = { name: escapeHtml(journey.name), steps: journey.steps };
   }
+  const acceptanceIds = new Set(input.acceptance.map((journey) => journey.journeyId));
+  const coverageRoutes = input.routes.filter((route) => !acceptanceIds.has(route.journeyId));
+  const routeAnchors: Record<string, { journeyId: string; name: string; steps: number }> = {};
+  for (const route of coverageRoutes) {
+    routeAnchors[route.path] = {
+      journeyId: route.journeyId,
+      name: escapeHtml(route.name),
+      steps: route.steps,
+    };
+  }
   const lines = [
     "// CLAPP generated acceptance journeys (appKind: web).",
     "//",
@@ -387,6 +407,11 @@ export function emitJourneysTest(input: {
     "// starts the generated server in-process on an ephemeral loopback port, asserts",
     "// the journey page anchors and replays the JSON API round-trip. Networking",
     "// never leaves 127.0.0.1.",
+    "//",
+    "// CLAPP-W3-003: full-route coverage. Every plan route the acceptance selection",
+    '// does not pin gains an additive "route coverage: <journeyId>" test asserting the',
+    "// same derivable anchors. Step counts are the plan routes' observed counts; the",
+    "// suite pins counts and anchors only — it never emits interaction scripts.",
     'import assert from "node:assert/strict";',
     'import { test } from "node:test";',
     'import { start } from "./server.ts";',
@@ -398,6 +423,8 @@ export function emitJourneysTest(input: {
     "const EXPECTED_API: Record<string, unknown> = JSON.parse(" +
       `${jsonLiteral(input.expectedApi)});`,
     "const PUT_PROBE: Record<string, unknown> = JSON.parse('{\"clappPutProbe\":true}');",
+    "const ROUTE_ANCHORS: Record<string, { journeyId: string; name: string; steps: number }> = JSON.parse(" +
+      `${jsonLiteral(routeAnchors)});`,
     "",
     "async function assertApiRoundTrip(baseUrl: string): Promise<void> {",
     "  for (const key of API_KEYS) {",
@@ -449,6 +476,32 @@ export function emitJourneysTest(input: {
       '    assert.ok(html.includes(anchor.name), "journey name anchor");',
       `    assert.ok(html.includes(${htmlAttributeLiteral("data-journey", journey.journeyId)}), "journey data-journey anchor");`,
       '    assert.ok(html.includes("data-step-count=\\"" + anchor.steps + "\\""), "journey step count anchor");',
+      '    const index = await fetch(baseUrl + "/");',
+      "    assert.equal(index.status, 200);",
+      "    await assertApiRoundTrip(baseUrl);",
+      "  } finally {",
+      "    await server.close();",
+      "  }",
+      "});",
+    );
+  }
+  for (const route of coverageRoutes) {
+    const pathLiteral = JSON.stringify(route.path);
+    lines.push(
+      "",
+      `test(${JSON.stringify(`route coverage: ${route.journeyId}`)}, async () => {`,
+      "  const server = await start(0);",
+      "  try {",
+      '    const baseUrl = "http://127.0.0.1:" + server.port;',
+      `    const path = ${pathLiteral};`,
+      `    const anchor = ROUTE_ANCHORS[${pathLiteral}];`,
+      "    const response = await fetch(baseUrl + path);",
+      "    assert.equal(response.status, 200);",
+      '    assert.ok((response.headers.get("content-type") ?? "").startsWith("text/html"));',
+      "    const html = await response.text();",
+      '    assert.ok(html.includes(anchor.name), "route name anchor");',
+      `    assert.ok(html.includes(${htmlAttributeLiteral("data-journey", route.journeyId)}), "route data-journey anchor");`,
+      '    assert.ok(html.includes("data-step-count=\\"" + anchor.steps + "\\""), "route step count anchor");',
       '    const index = await fetch(baseUrl + "/");',
       "    assert.equal(index.status, 200);",
       "    await assertApiRoundTrip(baseUrl);",
