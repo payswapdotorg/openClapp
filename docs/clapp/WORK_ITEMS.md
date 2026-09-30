@@ -44,6 +44,21 @@ Target authorization persistence.
 Depends: W1-002, SECURITY authorization record.
 Done when a target run persists an authorization record (target owner, authorized scope, allowed environments, artifact retention, expiry, operator identity) before observation begins, and observation fails closed without a valid unexpired record.
 
+### CLAPP-W1-009
+Multi-user hardening.
+Depends: W1-007, W1-008.
+Done when concurrent operators with distinct identities observe strictly isolated task/package scope — cross-user reads and writes fail closed with authorization-record-backed denial reasons, and no operator can observe another operator's task events or artifacts.
+
+### CLAPP-W1-010
+Isolation/egress controls for candidate execution.
+Depends: W1-003, W1-008.
+Done when candidate and benchmark execution is bounded to a declared egress allow-list derived from the target's authorization record — attempted out-of-scope egress is blocked before the call, recorded with the blocked destination, and the execution report carries an explicit egress-enforced marker.
+
+### CLAPP-W1-011
+Audit/retention enforcement.
+Depends: W1-008.
+Done when authorization, observation, repair, and promotion events append to a tamper-evident audit log (content-addressed chain) with per-record retention derived from the authorization record, and expired records are excluded from reads while their prior inclusion remains provable.
+
 ## W2 — Behavioral Intelligence / Learning
 
 ### CLAPP-W2-001
@@ -82,6 +97,11 @@ Depends: parity findings.
 Package promotion/evaluation gate.
 Depends: W2-006, W2-009.
 
+### CLAPP-W2-011
+Measurable compounding improvement (repeated-build orchestration).
+Depends: W2-009, W2-010, W3-009.
+Done when repeated builds of the same benchmark with learning enabled produce a per-signal compounding record across learning reports (improvement visible, or honest no-signal reasons recorded), orchestrated end-to-end (build → extract → evaluate → promote → rebuild), and the TL-005 archetype learning experiment report exists with its comparison attached.
+
 ## W3 — Synthesis / Verification / Product
 
 ### CLAPP-W3-001
@@ -115,6 +135,16 @@ Depends: stable API/events.
 ### CLAPP-W3-008
 End-to-end app reconstruction acceptance.
 Depends: W1/W2/W3 core gates.
+
+### CLAPP-W3-009
+Archetype composition planner.
+Depends: W2-004, W2-005, W3-001.
+Done when a detected archetype plus registry-selected compatible packages derive a composition plan (which package slots to fill, with which versions, from the compatibility graph) that the candidate generator can consume, with an explicit no-compatible-set fallback path (vanilla synthesis) and recorded provenance for every selected package.
+
+### CLAPP-W3-010
+Export/deployment packaging.
+Depends: W3-008.
+Done when a reconstructed, verified candidate exports as a deployable artifact bundle with a provenance manifest (base SHA, composition plan, package set, verification report ids) and a documented reproducible-build check that fails closed when manifest and artifact disagree.
 
 ## Tech lead gates
 
