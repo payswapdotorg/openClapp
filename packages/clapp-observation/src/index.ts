@@ -24,6 +24,24 @@ export type {
   PartialObservationResult,
 } from "./adapter.ts";
 export { createBrowserObservationAdapter, OBSERVATION_ADAPTER_VERSION } from "./adapter.ts";
+// CLAPP-W1-008 — target authorization persistence: the authorize path, the
+// narrow AuthorizationStore port, and the fail-closed gate composed over the
+// W1-002 adapter (docs/clapp/SECURITY.md, Authorization).
+export type {
+  AuthorizationGateDependencies,
+  AuthorizationKind,
+  AuthorizationRecord,
+  AuthorizationStore,
+  AuthorizeTargetOptions,
+  GatedBrowserObservationAdapter,
+} from "./authorization.ts";
+export {
+  AUTHORIZATION_RECORD_ID_PREFIX,
+  authorizationRecordKey,
+  authorizeTarget,
+  buildAuthorizationRecord,
+  createGatedBrowserObservationAdapter,
+} from "./authorization.ts";
 // Deterministic content addressing.
 export { canonicalJson, canonicalJsonBytes, sha256Hex, utf8 } from "./canonical.ts";
 // Channel registry.
