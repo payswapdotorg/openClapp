@@ -232,3 +232,23 @@ export {
   LEARNING_SIGNAL_IDS,
   LearningRecordError,
 } from "./learning-benchmark.ts";
+
+// CLAPP-W2-010 — package promotion/evaluation gate: the benchmark-grounded
+// gate decision and the gated promotion flow over the W2-005 registry.
+
+export type {
+  GatedPromotionEvaluation,
+  GatedPromotionInput,
+  GatedPromotionOutcome,
+  PromotionGateCriterion,
+  PromotionGateCriterionId,
+  PromotionGateDecision,
+  PromotionGateErrorCode,
+} from "./promotion-gate.ts";
+export {
+  decidePromotionGate,
+  EVALUATION_DECISION_ID_PREFIX,
+  PROMOTION_GATE_CRITERIA,
+  PromotionGateError,
+  promoteGated,
+} from "./promotion-gate.ts";
