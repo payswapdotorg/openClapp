@@ -39,6 +39,11 @@ Future native provider interface implementations.
 Depends: native ADR.
 Do not begin before Phase 10.
 
+### CLAPP-W1-008
+Target authorization persistence.
+Depends: W1-002, SECURITY authorization record.
+Done when a target run persists an authorization record (target owner, authorized scope, allowed environments, artifact retention, expiry, operator identity) before observation begins, and observation fails closed without a valid unexpired record.
+
 ## W2 — Behavioral Intelligence / Learning
 
 ### CLAPP-W2-001
@@ -73,9 +78,9 @@ Depends: W2-005.
 Failure memory and repair-pattern learning.
 Depends: parity findings.
 
-### CLAPP-W2-009
-Continuous-learning benchmarks.
-Depends: W2-006/007.
+### CLAPP-W2-010
+Package promotion/evaluation gate.
+Depends: W2-006, W2-009.
 
 ## W3 — Synthesis / Verification / Product
 
