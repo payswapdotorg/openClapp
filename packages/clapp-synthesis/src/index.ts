@@ -154,3 +154,16 @@ export {
   serializeRepairReport,
   summarizeRepair,
 } from "./repair.ts";
+
+// ---------------------------------------------------------------------------
+// CLAPP-W3-003 additive block: honest suite coverage digest
+// ---------------------------------------------------------------------------
+
+export type { JourneyCoverage, SuiteCoverageDigest } from "./coverage.ts";
+export {
+  ACCEPTANCE_JOURNEY_TEST_PREFIX,
+  digestSuiteCoverage,
+  INDEX_ROUTE_TEST_NAME,
+  ROUTE_COVERAGE_TEST_PREFIX,
+  SUITE_FILE_NAME,
+} from "./coverage.ts";
