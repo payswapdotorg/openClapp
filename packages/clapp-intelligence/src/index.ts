@@ -205,3 +205,30 @@ export {
   REPAIR_PATTERN_EVIDENCE_MINIMUM,
   suggestRepairHints,
 } from "./failure-memory.ts";
+
+// CLAPP-W2-009 — continuous-learning benchmarks: learning build records and
+// the M6 steps 4-6 comparison report over the LEARNING.md signal vocabulary.
+
+export type {
+  AvailableLearningSignalRow,
+  CanonicalLearningBuildRecord,
+  LearningAcceptanceIntegrity,
+  LearningBuildPhase,
+  LearningBuildRecord,
+  LearningBuildStepsProxy,
+  LearningComparisonReport,
+  LearningRecordErrorCode,
+  LearningReportDigest,
+  LearningRowDirection,
+  LearningSignalComparison,
+  LearningSignalId,
+  LearningSignalRow,
+  ParityMeasurement,
+  UnavailableLearningSignalRow,
+} from "./learning-benchmark.ts";
+export {
+  buildLearningComparison,
+  LEARNING_REPORT_ID_PREFIX,
+  LEARNING_SIGNAL_IDS,
+  LearningRecordError,
+} from "./learning-benchmark.ts";
