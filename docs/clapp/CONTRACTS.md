@@ -19,6 +19,15 @@ Workers may mirror types for local convenience only. Mirrors must be byte-identi
 - `clapp_finding_`
 - `clapp_repair_`
 - `clapp_package_`
+- `clapp_authz_`
+- `clapp_eval_`
+
+Persisted-record identifiers (`clapp_package_`, `clapp_authz_`, `clapp_eval_`,
+and the W2-009 learning-report family) are content-addressed: prefix + first
+16 hex characters of sha256 over the record's canonical serialization
+(ADR-003). The module-exported prefix constants are the runtime declaration;
+this list is normative, and `tests/clapp-contract-ids.test.ts` pins the two
+together.
 
 ## ReconstructionSpec
 

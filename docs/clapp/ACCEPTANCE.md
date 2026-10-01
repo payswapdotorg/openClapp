@@ -20,6 +20,8 @@ Given a fixture target:
 5. finish with durable artifacts.
 
 PASS requires no duplicate stage execution that causes inconsistent artifacts.
+Target authorization persists with content-addressed `clapp_authz_` ids
+(prefix + 16-hex sha256; ADR-003).
 
 ## M1 — Evidence
 
@@ -85,6 +87,8 @@ For at least two materially different benchmark apps:
 4. build a second app that matches a prior archetype;
 5. reuse packages;
 6. compare new-code, repair iterations, build time and package reuse.
+7. every promotion/evaluation decision carries a content-addressed
+   `clapp_eval_` id (prefix + 16-hex sha256; ADR-003).
 
 Do not reduce results to one score.
 
