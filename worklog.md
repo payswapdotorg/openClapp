@@ -161,3 +161,20 @@ Stage Summary:
 - Contract impact: none — no frozen contract touched, no pinned shape changed; the synthesis index change is strictly additive (the W3-003 pattern).
 - Server orchestration wiring (composing these stages into the durable control-plane chain) remains out of scope, honestly stated: this item composes the REAL stage implementations at the package seam; wiring them into the server chain is later tech-lead work.
 - Next unblocked work: the wave-9 contract identifier pass (clapp_authz_ + clapp_eval_ ADR dedupe); wave 10 (W3-009 composition planner onward).
+
+---
+Task ID: CLAPP-W3-008-integration-2026-10-01
+Agent: resident tech-lead (Z.ai Code, session web-53cc9ede, chat f6020902)
+Task: Full integration cycle for CLAPP-W3-008 (wave 9 lane 3 — end-to-end app reconstruction acceptance): harvest → verify → review → battery → merge → record → push. WAVE 9 CLOSED.
+
+Work Log:
+- Completion verified Lead-side: chat 2017a3c2 final text block (8207 chars) ends byte-exact CLAPP-COMPLETION-REPORT CLAPP-W3-008 END; honest base-state discrepancy note (W1-008/W2-010 integrated at f29db2f despite dispatch wording) verified correct via git log.
+- Harvest from ws-046a9aad: ok=2 fail=0; bundle sha256 d312e8ed7ee1fdcec320eeab87da970bcc593604d7f3bcf7b964d49ca3b1aa53 EXACT vs report; git bundle verify clean (requires f29db2f).
+- Fetched worker/clapp-w3-008 head 495ea840; ancestry OK; diff exactly +1910/−0 across 4 files (e2e-acceptance.ts NEW 557 zero-import ADR-002 module; index.ts +26 additive W3-003 pattern; tests/clapp-w3-008-e2e.test.ts NEW 1300 composing the REAL stages at the test seam; worklog.md +27 append).
+- Battery on merged head: tsc 0 errors; biome 0 errors (223 files); W3-008 lane 8/8; frozen W3-005/006/007 8/8 standalone; full pnpm test 399/398/1 — the 1 = documented pre-existing browser.test.ts file-level wrapper (byte-identical to base, subtests pass), oauth passed this run (intermittent per wave-8 record), zero new failures.
+- Merge --no-ff 495ea84; this record committed; push to origin/main.
+
+Stage Summary:
+- WAVE 9 COMPLETE (3/3 lanes: W1-008 d997224, W2-010 f29db2f, W3-008 this merge). digestE2eAcceptance ships honest per-stage outcomes + verbatim parity verdicts + base-state limitations; no aggregate score.
+- Roadmap: 31 ✅ / 14 ⬜. Next: wave-9 contract identifier pass (clapp_authz_ + clapp_eval_ ADR dedupe, tech-lead owned), then wave 10 (W3-009 prompt ready; W1-009/010/011, W2-011, W3-010 just-in-time).
+
