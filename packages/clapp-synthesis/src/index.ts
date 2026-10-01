@@ -167,3 +167,29 @@ export {
   ROUTE_COVERAGE_TEST_PREFIX,
   SUITE_FILE_NAME,
 } from "./coverage.ts";
+
+// ---------------------------------------------------------------------------
+// CLAPP-W3-008 additive block: end-to-end acceptance digest
+// ---------------------------------------------------------------------------
+
+export type {
+  E2eAcceptanceDigest,
+  E2eAcceptanceLimitation,
+  E2eAcceptanceRun,
+  E2eCandidateArtifact,
+  E2eExtractionArtifact,
+  E2eJourneyCoverageEntry,
+  E2eJourneyInput,
+  E2eObservationArtifact,
+  E2ePlanArtifact,
+  E2eRepairArtifact,
+  E2eRepairOutcome,
+  E2eStageOutcome,
+  E2eStageRecord,
+  E2eVerificationArtifact,
+} from "./e2e-acceptance.ts";
+export {
+  digestE2eAcceptance,
+  E2E_ACCEPTANCE_DIGEST_VERSION,
+  E2E_BASE_STATE_LIMITATIONS,
+} from "./e2e-acceptance.ts";
