@@ -274,3 +274,22 @@ Stage Summary:
 - Out of scope (tech-lead waves): composing the wrapper into the benchmark host / server routes, any durable enforcement store, any @clapp/contracts revision for the declaredEgress field (proposed, not edited).
 - Contract/ADR proposals: declaredEgress input field is declared locally on the wrapper's own type; EgressEnforcementRecord carries no identifier (pure append event) — if content-addressed enforcement records are later wanted, a clapp_egress_ prefix would follow the ADR-003 discipline.
 - Branch clapp-w1-010, one commit on top of 382c97a; bundle + DELIVERY.md staged under /home/z/my-project/delivery/CLAPP-W1-010/.
+
+---
+Task ID: CLAPP-W1-010-integration-2026-10-02
+Agent: resident tech-lead (Z.ai Code, session web-53cc9ede, chat f6020902)
+Task: Full integration cycle for CLAPP-W1-010 (wave 10 lane 3 — isolation/egress controls): harvest → verify → review → battery → merge → record → push.
+
+Work Log:
+- Multi-adoption again (3 workspaces booted, rounds 1+3 completed byte-exact within ~25 min); round 1 chat 25555d81 integrated (canonical first landing), rounds 2/3 redundant (workspaces released post-integration).
+- Honest report verified: worker flagged the prompt's frozen-suite filename slip (named clapp-w1-003-candidate.test.ts; the real W1-003 seam suite is clapp-w1-003-execution.test.ts — verified unmodified-green 10/10; nothing built on a guess). Prompt-authoring lesson recorded: verify frozen-suite filenames before dispatch.
+- Harvest from ws-17c2a71a: ok=2 fail=0; bundle sha256 c10538b2b31f7c6553d91062e1fe945122f235b99285426c84d46b111140fa7a EXACT vs report; git bundle verify clean (requires 382c97a).
+- Fetched worker/clapp-w1-010 head 1a9ce778; ancestry OK; diff exactly +1227/−0 across 4 files; all 4 per-file sha256s match the report table EXACTLY (egress.ts NEW 665 lines; index.ts +24 additive export block; tests/clapp-w1-010-egress.test.ts NEW 516 lines, records minted through the real authorizeTarget path; worklog.md +22 append).
+- Battery on merged head: tsc 0 errors; biome 0 errors (230 files); W1-010 lane 8/8; frozen W1-002 9/9, W1-003 10/10, W1-007 8/8, W1-008 8/8, W1-009 8/8, W3-009 8/8; full pnpm test 426/425/1 — the 1 = the documented pre-existing browser.test.ts file-level wrapper (oauth passed this run, intermittent per record). Zero new failures.
+- Design review: deriveEgressAllowList (pure, record-derived, expiry-checked), createEgressEnforcingExecutionProvider wrapper (pre-call block, enforcement log port, egressMode markers: denied/enforced-allowlist), ClappEgressError extends ClappRuntimeError fail-closed with precise reason union; targetId added to derivation input (honest deviation, required by acceptance test 2); declaration-check seam honestly scoped (substrate physically disables networking; route/benchmark wiring out of scope per work item).
+- ROADMAP.md: Product hardening → isolation/egress controls ✅ (W1-010, wave 10).
+- Merge --no-ff; this record committed; push to origin/main.
+
+Stage Summary:
+- W1-010 integrated: candidate execution is now bounded to a declared egress allow-list derived from the target's authorization record, with pre-call blocking, enforcement recording, and explicit egress-enforced markers. Composes frozen W1-003/W1-008 surfaces unmodified.
+- Roadmap: 34 ✅ / 11 ⬜. Remaining wave 10: W1-011 (audit/retention — prompt ready), W2-011 + W3-010 (just-in-time). Next dispatch: W1-011.
