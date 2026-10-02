@@ -49,12 +49,12 @@ openClapp
 │   ├── 🟡 repeated-build benchmarks (W2-009, wave 8 — the M6 comparison-report measurement half)
 │   └── ✅ measurable compounding improvement (W2-011, wave 10)
 │
-├── ⬜ Product hardening
+├── ✅ Product hardening
 │   ├── ✅ CLAPP UX (W3-007, wave 7)
 │   ├── ✅ multi-user hardening (W1-009, wave 10)
 │   ├── ✅ isolation/egress controls (W1-010, wave 10)
 │   ├── ✅ audit/retention (W1-011, wave 10)
-│   └── ⬜ export/deployment
+│   └── ✅ export/deployment (W3-010, wave 10)
 │
 └── ⬜ Native adapters
     ├── ⬜ Android

@@ -398,3 +398,23 @@ Stage Summary:
 - Dependencies composed frozen and unmodified: W3-009 (planComposition), W3-001 (planSynthesisApp + validateSynthesisPlan), W3-002 (generateCandidateApp — the candidate artifact), W3-008 (digestE2eAcceptance — the verification evidence); @clapp/contracts consumed read-only (ClappPackage, CLAPP_CONTRACT_VERSION). Cross-lane imports: none (source-asserted).
 - Branch clapp-w3-010, one source commit on top of 3a792b9 plus this record; bundle + DELIVERY.md staged under /home/z/my-project/delivery/CLAPP-W3-010/.
 - Wave 10 is now fully authored on the worker side (lanes 1-6); only integration remains for lane 6, after which only the native adapters (Phase 10) are open.
+
+---
+
+## W3-010 integration record — wave 10 closes
+
+**Date:** 2026-10-02 (Lead integration, ~07:55 UTC)
+
+**Worker session:** clapp-w3-010a, chat 5f330596 (round 6 landing, adopted 07:06, complete 07:09). Squeeze 05:03→07:06 (~2h, rounds 1–5 capacity-gated).
+
+**Lead-side verification (all gates):**
+- Harvest ws-a6238c93 ok=2 fail=0; bundle sha256 `3e028af7421d94a4c341134e2e787feb1fa7c46507f3b14c89dc955b04e344ab` EXACT vs report.
+- `git bundle verify`: requires base `3a792b99` (correct); branch `clapp-w3-010` head `42ae5b66` (b898e7f source+tests, 42ae5b6 work record); ancestor check OK.
+- Diff exactly 4 files +2477/−0 (export-bundle.ts 1303 NEW / index.ts +25 additive / test file 1125 NEW / worklog +24); index.ts diff verified purely additive, no existing export touched.
+- Battery on Lead machine: `pnpm typecheck` 0 errors; `pnpm lint` (biome) clean 236 files; lane `tests/clapp-w3-010-export.test.ts` 8/8; frozen suites contract-ids 3/3, W3-001 8/8, W3-002 8/8, W3-008 8/8, W3-009 8/8; full `pnpm test` baseline (at 3a792b9) 443/442/1 → delivery 451/450/1 — delta exactly +8 (the lane's tests), zero new failures, the 1 failure is the documented pre-existing `tests/browser.test.ts` file-level wrapper (all named subtests pass). Worker-sandbox absolute counts (453/452/1 → 461/460/1) show the same +8 delta — the documented environment-dependent drift.
+- Completion report read from the chat's final text block: ends byte-exact `CLAPP-COMPLETION-REPORT CLAPP-W3-010 END` (uppercase form per prompt — the prompt is the source of truth for marker form; Lead probe initially searched lowercase and found 0 spots).
+
+**Decisions:**
+- APPROVED. Merged `--no-ff` into main; ROADMAP.md marks: export/deployment ✅ (W3-010, wave 10), Product hardening group ✅ → **wave 10 fully closed**.
+- `clapp_export_` prefix: locally declared in module with pending-revision note; the CONTRACTS.md revision is proposed in the worker's completion report (ADR-003 path) — to be folded in a future contracts ADR if adopted. No contract files touched (verified: frozen files byte-identical).
+- Remaining roadmap: App archetype factory (2 🟡 partial halves) + Native adapters (5 ⬜). Native adapters = next phase (Phase 10).
