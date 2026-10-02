@@ -355,3 +355,22 @@ Stage Summary:
 - Wave 10 lane 5 landed additively in @clapp/intelligence: the repeated-build learning experiment is now ONE call — two measured builds of the same benchmark plus the scratch artifacts and (optionally) the W3-009 composition plan as data produce the TL-005 archetype learning experiment report (the CompoundingExperimentReport) with the comparison attached verbatim, the per-signal compounding record across it, honest attribution to the promoted package set, the learning-disabled control, and the honest verdict — everything content-addressed and fail-closed.
 - Dependencies composed frozen and unmodified: W2-009 (records + comparison), W2-006 (extraction/registration/summary), W2-005 (registry/store), W2-010 (gate + gated promotion); W3-009 consumed only through the local structural port (ADR-002). Cross-lane imports: none.
 - Branch clapp-w2-011, one source commit (004f726) on top of 283ef10 plus this record; bundle + DELIVERY.md staged under /home/z/my-project/delivery/CLAPP-W2-011/.
+
+---
+Task ID: CLAPP-W2-011-integration-2026-10-02
+Agent: resident tech-lead (Z.ai Code, session web-53cc9ede, chat f6020902)
+Task: Full integration cycle for CLAPP-W2-011 (wave 10 lane 5 — measurable compounding improvement): harvest → verify → review → battery → merge → record → push.
+
+Work Log:
+- Prompt authored just-in-time (deps W2-009/W2-010/W3-009 all landed at base 283ef10): frozen-suite filenames pre-verified (the W1-010 lesson); corepack note included.
+- Completion verified Lead-side: chat e5b22b93 final text block (5,043 chars) ends byte-exact CLAPP-COMPLETION-REPORT CLAPP-W2-011 END; 2 clean commits (004f726 source+tests, ae7fee5 work record).
+- Harvest from ws-b03098e2: ok=2 fail=0; bundle sha256 ce0a063732f50aa440e68bb5b89963461b1ecd1ed22c849b841847de4a925639 EXACT vs report; git bundle verify clean (requires 283ef10).
+- Fetched worker/clapp-w2-011 head ae7fee52; ancestry OK; diff exactly +1849/−0 across 4 files; all 4 per-file sha256s match the report table EXACTLY (compounding.ts NEW 901 lines; index.ts +25 additive block; tests/clapp-w2-011-compounding.test.ts NEW 902 lines; worklog.md +21 append).
+- Battery on merged head: tsc 0 errors; biome 0 errors (234 files); W2-011 lane 8/8; frozen W2-009 8/8, W2-010 8/8, W3-009 8/8, contract-ids 3/3; full pnpm test 442/441/1 — the 1 = the documented pre-existing browser.test.ts file-level wrapper. Zero new failures.
+- Design review: runCompoundingExperiment composes the REAL W2 surfaces end-to-end (extractPackageCandidates → registerCandidates → decidePromotionGate → promoteGated → buildLearningComparison), per-signal compounding rows with honest improved/worsened/unchanged/unavailable + reasons, attribution to the promoted package SET (never fabricated per-signal causality), learning-disabled control verdict, content-addressed clapp_compound_ ids (ADR-003 discipline, prefix proposed in-report).
+- ROADMAP.md: App archetype factory → measurable compounding improvement ✅ (W2-011, wave 10).
+- Merge --no-ff; this record committed; push to origin/main.
+
+Stage Summary:
+- W2-011 integrated: the learning loop closes — repeated builds with learning enabled now produce a measurable, content-addressed compounding record with the TL-005 experiment report (comparison attached verbatim).
+- Roadmap: 36 ✅ / 9 ⬜. Remaining wave 10: W3-010 (export/deployment — prompt AUTHORED and filename-verified, dispatching next). After W3-010: wave 10 closes; only native adapters (Phase 10) remain.

@@ -47,7 +47,7 @@ openClapp
 │   ├── 🟡 archetype detection (W2-004, wave 5)
 │   ├── ✅ composition planner (W3-009, wave 10)
 │   ├── 🟡 repeated-build benchmarks (W2-009, wave 8 — the M6 comparison-report measurement half)
-│   └── ⬜ measurable compounding improvement
+│   └── ✅ measurable compounding improvement (W2-011, wave 10)
 │
 ├── ⬜ Product hardening
 │   ├── ✅ CLAPP UX (W3-007, wave 7)
