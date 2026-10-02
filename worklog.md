@@ -198,3 +198,20 @@ Stage Summary:
 - The App archetype factory's missing half is closed: detection (W2-004, amber) + composition (this item) => the W2-011 compounding-improvement and W3-010 export/deployment lanes can consume CompositionPlan.
 - Contract impact: none — the CompositionPlan type is synthesis-local, composing frozen v0.1 contract types as-is (ClappPackage, SynthesisPlan.packageIds, ReconstructionSpec.synthesis.packagePolicy mirrored verbatim).
 - Delivery staged at /home/z/my-project/delivery/CLAPP-W3-009/ (bundle + DELIVERY.md); source, test and worklog committed on clapp-w3-009.
+
+---
+Task ID: CLAPP-W3-009-integration-2026-10-02
+Agent: resident tech-lead (Z.ai Code, session web-53cc9ede, chat f6020902)
+Task: Full integration cycle for CLAPP-W3-009 (wave 10 lane 1 — archetype composition planner): harvest → verify → review → battery → merge → record → push. Wave-10 dispatch continues.
+
+Work Log:
+- Completion verified Lead-side: chat 3ccc0884 (round 9, 00:33:58 UTC Oct 2 — the squeeze cleared at ~12.4h, matching the ~13h overnight precedent) final text block (4,619 chars) ends byte-exact `CLAPP-COMPLETION-REPORT CLAPP-W3-009 END` (uppercase form per prompt lines 435/461). Ring self-terminated cleanly before the report landed: sentinel exit 0 "whole wave generating; done" 01:11:49.
+- Harvest from ws-0aa849c7: ok=2 fail=0; bundle sha256 8a45706b93ba55c622af5977c1091cb850cc1caba00e792db3cb685d74a22a7a EXACT vs report; git bundle verify clean (requires 5fdb5af).
+- Fetched worker/clapp-w3-009 head 08f76414; ancestry OK; diff exactly +2262/−0 across 4 files; all 4 per-file sha256s match the report table EXACTLY (composition.ts NEW 848-line zero-import ADR-002 module — only @clapp/contracts + local imports; index.ts +24 additive W3-003 pattern, no existing export rewritten; tests/clapp-w3-009-composition.test.ts NEW 1370 lines composing the REAL classifyFromIr / createPackageRegistry / buildCompatGraph / planSynthesisApp surfaces at the test seam; worklog.md +20 append).
+- Battery on merged head bc674d2: tsc 0 errors; biome 0 errors (226 files); W3-009 lane 8/8; frozen lanes W3-005/W3-006/W3-008 8/8, W1-008 8/8, W2-010 8/8, clapp-contract-ids 3/3; full pnpm test 410/409/1 — the 1 = the documented pre-existing browser.test.ts file-level wrapper (identical signature: all 6 subtests pass, wrapper fails; byte-identical source to base). Delta vs my 5fdb5af baseline (402/401/1) = exactly +8 = this lane's 8 tests. Zero new failures. (Worker-side counts ran 412/411/1 baseline → 421/420/1 delivered — the known environment-dependent counting semantics; gate is zero-new-failures + byte-exact hashes, both satisfied.)
+- ROADMAP.md bookkeeping folded in (the wave-9 gap noted at W3-009 dispatch): Web reconstruction MVP group ✅ with target authorization (W1-008) + end-to-end acceptance (W3-008) children; Learning system group ✅ with promotion/evaluation (W2-010); composition planner ✅ (W3-009, this merge).
+- Merge --no-ff bc674d2; this record committed; push to origin/main.
+
+Stage Summary:
+- W3-009 integrated: planComposition (pure, deterministic, synchronous) ships the composition half of the App archetype factory — abstain-first/category/policy gates, identity-stable anchor + mutually-adjacent extension selection, honest fallback, verbatim provenance, content-addressed compositionDigest. Unblocks W2-011 (compounding) and W3-010 (export/deployment).
+- Roadmap: 32 ✅ / 13 ⬜. Remaining wave 10: W1-009 (multi-user hardening), W1-010 (isolation/egress), W1-011 (audit/retention), W2-011 (compounding — prompt authored just-in-time against this surface), W3-010 (export/deployment — just-in-time). Next dispatch: W1-009.
