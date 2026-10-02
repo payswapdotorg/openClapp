@@ -217,3 +217,28 @@ export type {
   FallbackCompositionPlan,
 } from "./composition.ts";
 export { CompositionError, planComposition } from "./composition.ts";
+
+// ---------------------------------------------------------------------------
+// CLAPP-W3-010 additive block: export/deployment packaging
+// ---------------------------------------------------------------------------
+
+export type {
+  ExportBundle,
+  ExportBundleErrorCode,
+  ExportBundleInput,
+  ExportCandidateArtifact,
+  ExportManifest,
+  ExportManifestFileEntry,
+  ExportManifestPackageEntry,
+  ExportManifestVerification,
+  ExportVerification,
+  ExportVerificationResult,
+} from "./export-bundle.ts";
+export {
+  buildExportBundle,
+  EXPORT_BUNDLE_DIGEST_PREFIX,
+  EXPORT_BUNDLE_FORMAT_VERSION,
+  ExportBundleError,
+  serializeExportBundle,
+  verifyExportBundle,
+} from "./export-bundle.ts";
