@@ -53,7 +53,7 @@ openClapp
 │   ├── ✅ CLAPP UX (W3-007, wave 7)
 │   ├── ✅ multi-user hardening (W1-009, wave 10)
 │   ├── ✅ isolation/egress controls (W1-010, wave 10)
-│   ├── ⬜ audit/retention
+│   ├── ✅ audit/retention (W1-011, wave 10)
 │   └── ⬜ export/deployment
 │
 └── ⬜ Native adapters

@@ -315,3 +315,22 @@ Stage Summary:
 - Audit/retention enforcement landed additively in @clapp/runtime-openmuse: a tamper-evident content-addressed hash chain over the four SECURITY.md event kinds, per-record retention derived structurally from W1-008 authorization records through a caller-declared policy (library never expires), read-side expiry exclusion at the exact W1-008 boundary (strictly before = expired), and inclusion proofs that recompute the stored chain — expired records stay provable, nothing ever rewrites a stored entry.
 - Contract/ADR proposals (NOT edited anywhere — frozen files untouched): add `clapp_audit_` to docs/clapp/CONTRACTS.md "Core identifiers" via the ADR-003 discipline (constant AUDIT_ENTRY_ID_PREFIX declares it locally with a pending-revision doc comment); `library` retention semantics (never expires, no expiresAt key) need no revision — they follow SECURITY.md + the frozen union as-is.
 - Branch clapp-w1-011, one source commit (337ae65) on top of 498bda1 plus this record; bundle + DELIVERY.md staged under /home/z/my-project/delivery/CLAPP-W1-011/.
+
+---
+Task ID: CLAPP-W1-011-integration-2026-10-02
+Agent: resident tech-lead (Z.ai Code, session web-53cc9ede, chat f6020902)
+Task: Full integration cycle for CLAPP-W1-011 (wave 10 lane 4 — audit/retention enforcement): harvest → verify → review → battery → merge → record → push.
+
+Work Log:
+- Incident + recovery (recorded honestly): during the lane's boot phase the TL erroneously ran the workspace-release tool while the lane was active — round 1's pod (ws-8d479619) was deleted mid-boot; its worker's tool-execution layer then failed (429s, 101 probes) and it reported an honest NON-DELIVERY (byte-exact marker, zero files changed). Round 2's pod was also lost. The ring's redundancy recovered the lane: round 3 (chat d6839350, ws-af92a122) delivered cleanly. LESSON (now standing SOP): never run dash_sandbox_release while a lane spec exists — booting workers have stale chat stamps the 10-min guard cannot distinguish; release only between lanes.
+- Completion verified Lead-side: round 3 final text block (6,981 chars) ends byte-exact CLAPP-COMPLETION-REPORT CLAPP-W1-011 END; 2 clean commits (337ae65 source+tests, 4788165 work record).
+- Harvest from ws-af92a122: ok=2 fail=0; bundle sha256 5d92ce14c8aae06b7940f08515576e49273110ae38595fa4df505116a098d806 EXACT vs report; git bundle verify clean (requires 498bda1).
+- Fetched worker/clapp-w1-011 head 4788165f; ancestry OK; diff exactly +1895/−0 across 4 files; all 4 per-file sha256s match the report table EXACTLY (audit.ts NEW 988 lines — the clapp_audit_ content-addressed hash chain; index.ts +31 additive export block; tests/clapp-w1-011-audit.test.ts NEW 854 lines; worklog.md +22 append).
+- Worker-side frozen verification: all 10 frozen suites individually 78/78, byte-identical.
+- Battery on merged head: tsc 0 errors; biome 0 errors (232 files); W1-011 lane 8/8; frozen W1-008 8/8, W1-009 8/8, W1-010 8/8, contract-ids 3/3, W3-009 8/8; full pnpm test 435/434/1 — the 1 = the documented pre-existing browser.test.ts file-level wrapper. Zero new failures.
+- ROADMAP.md: Product hardening → audit/retention ✅ (W1-011, wave 10).
+- Merge --no-ff; this record committed; push to origin/main.
+
+Stage Summary:
+- W1-011 integrated: authorization/observation/repair/promotion events append to a tamper-evident clapp_audit_ content-addressed chain; per-record retention derived from the authorization record; expired records excluded from reads while prior inclusion remains provable.
+- Roadmap: 35 ✅ / 10 ⬜. Remaining wave 10: W2-011 (compounding — NOW authorable: W3-009 CompositionPlan landed), W3-010 (export/deployment — authorable: W3-008 + W3-009 landed). Next: author + dispatch W2-011.
