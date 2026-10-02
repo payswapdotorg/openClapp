@@ -193,3 +193,27 @@ export {
   E2E_ACCEPTANCE_DIGEST_VERSION,
   E2E_BASE_STATE_LIMITATIONS,
 } from "./e2e-acceptance.ts";
+
+// ---------------------------------------------------------------------------
+// CLAPP-W3-009 additive block: archetype composition planner
+// ---------------------------------------------------------------------------
+
+export type {
+  AbstainedCompositionPlan,
+  ComposedCompositionPlan,
+  CompositionErrorCode,
+  CompositionGraph,
+  CompositionGraphEdge,
+  CompositionGraphEndpoint,
+  CompositionGraphNode,
+  CompositionInput,
+  CompositionLifecycle,
+  CompositionPackagePolicy,
+  CompositionPlan,
+  CompositionProvenance,
+  CompositionSelection,
+  CompositionSelectionRole,
+  CompositionVerdict,
+  FallbackCompositionPlan,
+} from "./composition.ts";
+export { CompositionError, planComposition } from "./composition.ts";
