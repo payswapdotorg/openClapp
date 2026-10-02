@@ -178,3 +178,23 @@ Stage Summary:
 - WAVE 9 COMPLETE (3/3 lanes: W1-008 d997224, W2-010 f29db2f, W3-008 this merge). digestE2eAcceptance ships honest per-stage outcomes + verbatim parity verdicts + base-state limitations; no aggregate score.
 - Roadmap: 31 ✅ / 14 ⬜. Next: wave-9 contract identifier pass (clapp_authz_ + clapp_eval_ ADR dedupe, tech-lead owned), then wave 10 (W3-009 prompt ready; W1-009/010/011, W2-011, W3-010 just-in-time).
 
+
+---
+Task ID: CLAPP-W3-009
+Agent: openClapp Worker CLAPP-W3-009 (worker@openclapp.local)
+Task: Archetype composition planner — packages/clapp-synthesis (wave 10, lane 3). A detected archetype plus registry-selected compatible packages derive a composition plan the candidate-generator chain consumes, with an explicit no-compatible-set fallback (vanilla synthesis) and recorded provenance for every selected package.
+
+Work Log:
+- Verified base 5fdb5af5a0152dc693f3804c5842b905c838e2a3 (wave-9 integration HEAD + ADR-003 contract identifier pass); branch clapp-w3-009; Node v24.21.0 / pnpm 11.19.0.
+- Baseline battery ONCE at setup: typecheck 0 errors, lint 0 errors, 412 tests / 411 pass / 1 fail (the documented pre-existing tests/browser.test.ts file-level wrapper; every named subtest passes).
+- Recon (read-only): WORK_ITEMS/ACCEPTANCE, intelligence surfaces (archetype.ts, retrieval.ts, package-registry.ts, extract-package.ts), synthesis spine (plan.ts, validate.ts, hash.ts, canonical.ts, index.ts), W2-007/W2-004 test fixture patterns.
+- NEW packages/clapp-synthesis/src/composition.ts: planComposition(input) — pure, deterministic, synchronous. Abstain first on label "unknown"; exact category gate (label === category, generic "application" never coerced); policy gate (verified-only = graph-promoted only, policy REQUIRED, no silent default); anchor = best-ranked survivor (promoted first, then survivor-incident edge count desc, then id/version asc — identity-stable, input order never leaks); extensions require adjacency to EVERY selected package plus a new capability (redundant/isolated/same-id skips recorded in notes; one version per package id so SynthesisPlan.packageIds stays unique); zero survivors => fallback with a reason naming what was missing; provenance per selection (registry fields read, lifecycle, VERBATIM sorted edge reasons, honest isolated note); compositionDigest = contentHash over the canonical core {status, selections, packageIds, notes} (never covers itself). Fail-closed CompositionError (RetrievalError discipline) collecting EVERY issue: non-array snapshot, missing/mistyped package fields, duplicate (id, version), non-array graph nodes/edges, edges missing from/to/kind/reason, missing/malformed verdict, missing/unknown policy, graph not covering the snapshot. Structural ports only — no @clapp/intelligence import (ADR-002); @clapp/contracts ClappPackage is the one cross-package import.
+- ADDITIVE export block appended to packages/clapp-synthesis/src/index.ts (the W3-003/W3-008 pattern; no existing export rewritten).
+- NEW tests/clapp-w3-009-composition.test.ts: the 8 named acceptance tests; the seam composes the REAL classifyFromIr (B02-like calibration IR), REAL createPackageRegistry over InMemoryPackageStore (register + promote), REAL registry.list() + buildCompatGraph, REAL planSynthesisApp -> validateSynthesisPlan -> generateCandidateApp, plus the source assertion that composition.ts imports only within @clapp/synthesis + @clapp/contracts.
+- Iterated on the own file only (node --test --import tsx tests/clapp-w3-009-composition.test.ts: 8/8), then the full battery once more before delivery: typecheck 0, lint 0 (biome formatter applied to the two new files), 421 tests / 420 pass / 1 fail (the same documented pre-existing browser.test.ts file-level failure; zero new failures, no existing test modified).
+
+Stage Summary:
+- CompositionPlan ships: status-discriminated composed | fallback | abstained; composed carries selections (role/packageId/version/provenance), unique packageIds in selection order (exactly the planSynthesisApp feed), honest notes, content-addressed compositionDigest.
+- The App archetype factory's missing half is closed: detection (W2-004, amber) + composition (this item) => the W2-011 compounding-improvement and W3-010 export/deployment lanes can consume CompositionPlan.
+- Contract impact: none — the CompositionPlan type is synthesis-local, composing frozen v0.1 contract types as-is (ClappPackage, SynthesisPlan.packageIds, ReconstructionSpec.synthesis.packagePolicy mirrored verbatim).
+- Delivery staged at /home/z/my-project/delivery/CLAPP-W3-009/ (bundle + DELIVERY.md); source, test and worklog committed on clapp-w3-009.
