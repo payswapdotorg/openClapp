@@ -52,6 +52,30 @@ export {
   SUBSTRATE_COMMAND_LIMIT_CHARS,
   SUBSTRATE_FILE_LIMIT_BYTES,
 } from "./candidate.ts";
+// CLAPP-W1-010 — isolation/egress controls for candidate execution: the
+// egress destination vocabulary, the authorization-record-derived allow-list,
+// the egress policy and the egress-enforcing execution provider composed over
+// the W1-003 execution seam (docs/clapp/SECURITY.md, Network).
+export type {
+  ClappEgressReason,
+  EgressAuthorizationRecord,
+  EgressCheckResult,
+  EgressDerivationInput,
+  EgressEnforcementLog,
+  EgressEnforcementRecord,
+  EgressEnforcingExecutionProvider,
+  EgressEnforcingOptions,
+  EgressExecutionInput,
+  EgressExecutionResult,
+  EgressPolicy,
+} from "./egress.ts";
+export {
+  ClappEgressError,
+  createEgressEnforcingExecutionProvider,
+  createEgressPolicy,
+  deriveEgressAllowList,
+  normalizeEgressDestination,
+} from "./egress.ts";
 export {
   ClappHandleNotProvidedError,
   ClappNotConfiguredError,
