@@ -27,6 +27,37 @@
  * (CLAPP_STAGE_STATE_KEY, CLAPP_EVENT_TITLES) as exported contracts.
  */
 
+// CLAPP-W1-011 — audit/retention enforcement: the tamper-evident
+// content-addressed audit chain for the four SECURITY.md event kinds
+// (authorization, observation, repair, promotion), per-record retention
+// derived structurally from the W1-008 authorization record, read-side
+// expiry exclusion with provable prior inclusion, over the narrow AuditStore
+// port (docs/clapp/SECURITY.md, Authorization).
+export type {
+  AuditAppendOptions,
+  AuditAuthorizationRecord,
+  AuditChainOptions,
+  AuditEntry,
+  AuditInclusionProof,
+  AuditReadOptions,
+  AuditRetention,
+  AuditRetentionClass,
+  AuditRetentionPolicy,
+  AuditStore,
+  AuditVerification,
+  ClappAuditEvent,
+  ClappAuditKind,
+  ClappAuditReason,
+} from "./audit.ts";
+export {
+  AUDIT_ENTRY_ID_PREFIX,
+  appendAuditEvent,
+  ClappAuditError,
+  deriveAuditRetention,
+  proveInclusion,
+  readAuditLog,
+  verifyAuditChain,
+} from "./audit.ts";
 export type {
   CandidateBuildHarvest,
   CandidateBuildInput,
