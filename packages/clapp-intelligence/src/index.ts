@@ -252,3 +252,28 @@ export {
   PromotionGateError,
   promoteGated,
 } from "./promotion-gate.ts";
+
+// CLAPP-W2-011 additive block — measurable compounding improvement: the
+// end-to-end repeated-build learning experiment (build -> extract ->
+// evaluate -> promote -> rebuild -> compare) composed from the frozen W2
+// surfaces, with the per-signal compounding record and the honest verdict.
+
+export type {
+  AvailableCompoundingSignalRow,
+  CompoundingCandidateCoordinate,
+  CompoundingCompositionPlan,
+  CompoundingCompositionSelection,
+  CompoundingErrorCode,
+  CompoundingExperimentInput,
+  CompoundingExperimentReport,
+  CompoundingExtractionRecord,
+  CompoundingPromotionRecord,
+  CompoundingSignalRow,
+  CompoundingVerdict,
+  UnavailableCompoundingSignalRow,
+} from "./compounding.ts";
+export {
+  COMPOUNDING_EXPERIMENT_ID_PREFIX,
+  CompoundingError,
+  runCompoundingExperiment,
+} from "./compounding.ts";
