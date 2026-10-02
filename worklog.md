@@ -234,3 +234,21 @@ Stage Summary:
 - Multi-user enforcement layer delivered at the control-plane seam: two concurrent operators with distinct identities are strictly isolated over the same real store; every cross-user read/write (get, stageTasks, artifacts, findSpec, markCancelled, create, package register/promote/get) fails closed with a ClappOperatorScopeError whose denial cites the persisted clapp_authz_ record (id + named owner + named operator) or states the explicit no-record/expiry reason; absent ids keep honest null semantics; task events and artifacts never cross operator boundaries even under exact-id probing and Promise.all interleaving.
 - Route-level session wiring and the real @clapp/intelligence registry wiring are explicitly out of scope (later tech-lead waves); the package port is a declared seam enforced over a fake in tests.
 - Proposed for CONTRACTS/ADR attention: the [clapp:multiuser:operator-scope] error discriminator prefix and the OperatorScopeDenial field set (identity-level only) may deserve a CONTRACTS.md identifier/ADR entry alongside clapp_authz_; no frozen file edited.
+
+---
+Task ID: CLAPP-W1-009-integration-2026-10-02
+Agent: resident tech-lead (Z.ai Code, session web-53cc9ede, chat f6020902)
+Task: Full integration cycle for CLAPP-W1-009 (wave 10 lane 2 — multi-user hardening): harvest → verify → review → battery → merge → record → push.
+
+Work Log:
+- Multi-adoption window (capacity fully open after the immediate workspace-release SOP): rounds 1/2 both completed in ~30 min (vs 65 min single-lane precedent); round 1 chat 775ec671 integrated as the canonical first landing, rounds 2/3 left redundant (workspaces released post-integration).
+- Completion verified Lead-side: final text block (7,824 chars) ends byte-exact CLAPP-COMPLETION-REPORT CLAPP-W1-009 END; report honest (no gaps, no weakened assertions; route wiring + fake package port stated as out-of-scope seams per the work item).
+- Harvest from ws-26d46ff3: ok=2 fail=0; bundle sha256 31eed5727a341aef78cc9ccb1512f75423cc78fc4de2ad3e32af98261c1ae06b EXACT vs report; git bundle verify clean (requires d08bb0c).
+- Fetched worker/clapp-w1-009 head 0546b8fe; ancestry OK; diff exactly +1987/−0 across 3 files; all 3 per-file sha256s match the report table EXACTLY (apps/server/src/clapp/multiuser.ts NEW 927-line composition-only guard over frozen W1-007 repos + W1-008 AuthorizationStore port, zero modification; tests/clapp-w1-009-multiuser.test.ts NEW 1041 lines on the real in-process substrate, records minted through the real authorizeTarget path; worklog.md +19 append).
+- Battery on merged head c616fc5: tsc 0 errors; biome 0 errors (228 files); W1-009 lane 8/8; frozen W1-002 9/9, W1-007 8/8, W1-008 8/8, W2-010 8/8, W3-009 8/8; full pnpm test 417/415/2 — the 2 = the documented pre-existing pair (browser.test.ts stable file-level wrapper + oauth.test.ts intermittent wrapper, wave-8 record); both verified identical signature (every named subtest passes; wrappers only) and byte-identical source to base d08bb0c. Zero new failures.
+- ROADMAP.md: Product hardening → multi-user hardening ✅ (W1-009, wave 10).
+- Merge --no-ff c616fc5; this record committed; push to origin/main.
+
+Stage Summary:
+- W1-009 integrated: the control plane's multi-user enforcement layer — operator identity as scoping key, strictly isolated task/package scope, cross-user reads AND writes fail closed carrying authorization-record-backed denial reasons (never a bare 404), scope errors typed and leak-free. Composes the frozen W1-007/W1-008 surfaces unmodified.
+- Roadmap: 33 ✅ / 12 ⬜. Remaining wave 10: W1-010 (isolation/egress — prompt ready), W1-011 (audit/retention — prompt ready), W2-011 (compounding — just-in-time), W3-010 (export/deployment — just-in-time). Next dispatch: W1-010.

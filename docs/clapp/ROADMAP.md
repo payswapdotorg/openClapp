@@ -51,7 +51,7 @@ openClapp
 │
 ├── ⬜ Product hardening
 │   ├── ✅ CLAPP UX (W3-007, wave 7)
-│   ├── ⬜ multi-user hardening
+│   ├── ✅ multi-user hardening (W1-009, wave 10)
 │   ├── ⬜ isolation/egress controls
 │   ├── ⬜ audit/retention
 │   └── ⬜ export/deployment
