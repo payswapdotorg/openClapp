@@ -11,10 +11,16 @@ import { ActionService } from "./actions.ts";
 import { agentConfigured, makeRuntime } from "./agent.ts";
 import { createAuth } from "./auth.ts";
 import { BrowserService } from "./browser.ts";
+import {
+  createClappAuthorizationStore,
+  createInMemoryPackageStore,
+} from "./clapp/executor-stores.ts";
+import { createRealStageExecutor } from "./clapp/executors.ts";
 import { createClappRepositories } from "./clapp/repositories.ts";
 import { clappRoutes } from "./clapp/routes.ts";
 import { createClappService } from "./clapp/service.ts";
 import {
+  createClappReadTasks,
   createClappWorkerHandler,
   createSkeletonStageExecutor,
   extractSubstrateWorkerHandler,
@@ -57,14 +63,27 @@ export async function createApp(
   // binds the real services, the control plane persists reconstructions and
   // drives the stage chain, and the worker handler wraps the substrate's
   // handler so CLAPP tasks run their stages while every other task flows
-  // through unchanged.
-  const clappRuntime = createOpenMuseRuntime({
-      browserSession: browser,
-      computer,
-      files,
-      agent,
-      db,
-    }),
+  // through unchanged. CLAPP-W3-013: the runtime binds the W1-003 candidate
+  // seam (empty options — the substrate defaults; the ComputerService carries
+  // the read/write/list capabilities the seam duck-types) and the handler
+  // binds the REAL stage executors for nine of the ten stages — the frozen
+  // package algorithms composed read-only, with honest unavailable states —
+  // while the authorization stage keeps the W1-007 skeleton as the DECLARED
+  // fallback: no authorize path exists server-side yet to persist the W1-008
+  // record the real stage verifies, so binding it now would fail-closed
+  // every production reconstruction (honest, but a behavior change the frozen
+  // W1-007 route test pins). The honest seam table lives in the W3-013 work
+  // record.
+  const clappRuntime = createOpenMuseRuntime(
+      {
+        browserSession: browser,
+        computer,
+        files,
+        agent,
+        db,
+      },
+      {},
+    ),
     clappRepositories = createClappRepositories(db),
     clappService = createClappService({
       db,
@@ -72,7 +91,16 @@ export async function createApp(
       runtime: clappRuntime,
       repositories: clappRepositories,
     }),
-    clappExecutor = createSkeletonStageExecutor({ readSpec: clappRepositories.findSpec }),
+    clappExecutor = createRealStageExecutor({
+      readSpec: clappRepositories.findSpec,
+      readTasks: createClappReadTasks(db),
+      authorizationStore: createClappAuthorizationStore(db),
+      packageStore: createInMemoryPackageStore(),
+      fallback: createSkeletonStageExecutor({
+        readSpec: clappRepositories.findSpec,
+      }).executor,
+      fallbackStages: ["authorization"],
+    }),
     clappHandler = createClappWorkerHandler({
       db,
       runtime: clappRuntime,
