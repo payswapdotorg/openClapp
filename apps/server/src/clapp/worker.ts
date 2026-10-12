@@ -39,8 +39,13 @@ export interface ClappWorkerHandlerDeps {
   /** The runtime with the real bound services (browser, computer, files, agent, db). */
   runtime: OpenMuseRuntime;
   /**
-   * The stage executor the tech lead wires to real stage implementations in
-   * later waves; this wave uses {@link createSkeletonStageExecutor}.
+   * The stage executor the handler binds. CLAPP-W3-013 binds the REAL stage
+   * executors (`createRealStageExecutor` in `./executors.ts` — the frozen
+   * package algorithms composed read-only, with honest unavailable states);
+   * the skeleton executor below remains exported as the declared fallback
+   * for integration seams that want a placeholder (none is bound in the
+   * production composition — the honest seam table lives in the W3-013 work
+   * record).
    */
   executor: StageExecutor;
   /**
