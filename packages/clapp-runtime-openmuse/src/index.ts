@@ -144,6 +144,41 @@ export type {
   ClappDbHandle,
   ClappFilesHandle,
 } from "./handles.ts";
+// CLAPP-W3-017 — the observation channel alignment: the runtime's W1-001-era
+// observation provider emits page-text/screenshot channel names while the
+// W2-002 extraction consumes the W1-002 dom-text/page-meta vocabulary. The
+// aligned emission derives the W1-002 vocabulary from the same handle.observe()
+// page snapshot wherever the bound handle also provides the W1-002
+// browser-session seam (create/navigate/read), so a production capture derives
+// the full extraction model (screens and journeys) instead of the honest
+// sparse baseline. The aligned refs are id- and digest-identical to the W1-002
+// adapter's refs for the same capture (the vocabulary is mirrored as literals
+// here — the frozen @clapp/observation package is consumed verbatim).
+export type {
+  AlignedPageEvidence,
+  AlignmentMapping,
+  ChannelAlignmentRecord,
+  NoRuntimeSourceKind,
+  UnmappedChannel,
+} from "./observation-alignment.ts";
+export {
+  ALIGNED_CHANNEL_KINDS,
+  alignmentForKind,
+  alignPageEvidence,
+  alignUnavailablePageEvidence,
+  buildChannelAlignment,
+  hasBrowserSessionSeam,
+  NO_RUNTIME_SOURCE_KINDS,
+  PAGE_TEXT_LIMIT,
+  SOURCE_NOTE_A11Y,
+  SOURCE_NOTE_DOM_STRUCTURE,
+  SOURCE_NOTE_DOM_TEXT,
+  SOURCE_NOTE_NETWORK,
+  SOURCE_NOTE_PAGE_META,
+  SOURCE_NOTE_SCREENSHOT,
+  SOURCE_NOTE_STORAGE,
+  sourceNoteForKind,
+} from "./observation-alignment.ts";
 export type {
   ClappRestartPlan,
   ClappRunStageState,
