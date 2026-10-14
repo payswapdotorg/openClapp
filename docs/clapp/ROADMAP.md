@@ -57,8 +57,8 @@ openClapp
 │   └── ✅ export/deployment (W3-010, wave 10)
 │
 └── ⬜ Native adapters
-    ├── ⬜ Android
-    ├── ⬜ Linux
+    ├── ✅ Android (CLAPP-NATIVE-ANDROID, wave 15; integrated 0e6019f)
+    ├── ✅ Linux (CLAPP-NATIVE-LINUX, wave 15; integrated 794eb23)
     ├── ⬜ Windows
     ├── ⬜ macOS
     └── ⬜ iOS
