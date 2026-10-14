@@ -32,6 +32,7 @@
  * adapters block flips ✅ only when all five are integrated).
  */
 
+export type { LinuxEnvironment, LinuxEnvironmentValidation } from "./environment.ts";
 // ---- the environment descriptor (component 1) ---------------------------------------
 export {
   CLAPP_NATIVE_LINUX_ENVIRONMENT_VERSION,
@@ -39,24 +40,24 @@ export {
   LINUX_DISPLAY_SERVERS,
   validateLinuxEnvironment,
 } from "./environment.ts";
-export type { LinuxEnvironment, LinuxEnvironmentValidation } from "./environment.ts";
-
-// ---- the observation adapter — the host seam (component 2) ---------------------------
-export { observeLinuxScreen } from "./observation.ts";
+export type { ObservationEvidenceResult } from "./evidence.ts";
+// ---- the evidence emitter (component 3) ----------------------------------------------
+export {
+  emitObservationEvidence,
+  LINUX_EVIDENCE_ID_PREFIX,
+} from "./evidence.ts";
 export type {
   LinuxObservation,
   LinuxObservationHost,
   LinuxObservationResult,
   LinuxViewNode,
 } from "./observation.ts";
-
-// ---- the evidence emitter (component 3) ----------------------------------------------
-export {
-  LINUX_EVIDENCE_ID_PREFIX,
-  emitObservationEvidence,
-} from "./evidence.ts";
-export type { ObservationEvidenceResult } from "./evidence.ts";
-
+// ---- the observation adapter — the host seam (component 2) ---------------------------
+export { observeLinuxScreen } from "./observation.ts";
+export type {
+  LinuxSynthesisTarget,
+  LinuxSynthesisTargetValidation,
+} from "./synthesis-target.ts";
 // ---- the synthesis target (component 4) ----------------------------------------------
 export {
   CLAPP_NATIVE_LINUX_TARGET_VERSION,
@@ -64,14 +65,9 @@ export {
   validateLinuxSynthesisTarget,
 } from "./synthesis-target.ts";
 export type {
-  LinuxSynthesisTarget,
-  LinuxSynthesisTargetValidation,
-} from "./synthesis-target.ts";
-
-// ---- the verification adapter — the host seam (component 5) ----------------------------
-export { verifyLinuxJourneys } from "./verification.ts";
-export type {
   LinuxVerificationHost,
   LinuxVerificationResult,
   LinuxVerificationRun,
 } from "./verification.ts";
+// ---- the verification adapter — the host seam (component 5) ----------------------------
+export { verifyLinuxJourneys } from "./verification.ts";

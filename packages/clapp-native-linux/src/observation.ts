@@ -59,8 +59,8 @@
  */
 
 import { canonicalJson, sha256Hex } from "./canonical.ts";
-import { validateLinuxEnvironment } from "./environment.ts";
 import type { LinuxEnvironment } from "./environment.ts";
+import { validateLinuxEnvironment } from "./environment.ts";
 
 // ---- the capture shapes ------------------------------------------------------------
 

@@ -45,8 +45,8 @@
  * inputs; results, never exceptions (except the loud-host law above).
  */
 
-import { validateLinuxEnvironment } from "./environment.ts";
 import type { LinuxEnvironment } from "./environment.ts";
+import { validateLinuxEnvironment } from "./environment.ts";
 
 // ---- the host seam (the honest boundary) -------------------------------------------
 
@@ -120,12 +120,7 @@ function preview(value: unknown): string {
  * forbids this adapter from constructing one (it never does), and equally
  * forbids accepting one masquerading as a journey outcome (fail-closed).
  */
-const DIFFREPORT_KEYS = new Set([
-  "findings",
-  "verdict",
-  "referenceRunId",
-  "candidateRunId",
-]);
+const DIFFREPORT_KEYS = new Set(["findings", "verdict", "referenceRunId", "candidateRunId"]);
 
 /**
  * Validates one host outcome: must be a plain object with a boolean
@@ -153,7 +148,9 @@ function validateHostOutcome(
       ok: false,
       reason: `host outcome for journey ${preview(journeyId)} carries DiffReport-shaped keys (${diffKeysPresent
         .map((key) => JSON.stringify(key))
-        .join(", ")}) — the adapter never constructs a parity/verdict record (ADR-004); a fake DiffReport-shaped return is a named error`,
+        .join(
+          ", ",
+        )}) — the adapter never constructs a parity/verdict record (ADR-004); a fake DiffReport-shaped return is a named error`,
     };
   }
   if (typeof outcome.completed !== "boolean") {
@@ -207,9 +204,7 @@ export async function verifyLinuxJourneys(
   }
 
   if (!Array.isArray(journeys)) {
-    errors.push(
-      `journeys must be an array of journey id strings (observed: ${preview(journeys)})`,
-    );
+    errors.push(`journeys must be an array of journey id strings (observed: ${preview(journeys)})`);
   } else {
     const ids: string[] = [];
     for (const [index, journeyId] of journeys.entries()) {
@@ -224,9 +219,7 @@ export async function verifyLinuxJourneys(
     const seen = new Set<string>();
     for (const journeyId of ids) {
       if (seen.has(journeyId)) {
-        errors.push(
-          `journeys contains a duplicate journey id (observed: ${preview(journeyId)})`,
-        );
+        errors.push(`journeys contains a duplicate journey id (observed: ${preview(journeyId)})`);
       } else {
         seen.add(journeyId);
       }

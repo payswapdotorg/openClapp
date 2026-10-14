@@ -90,9 +90,7 @@ const ACCESSIBILITY_BUSES_FOR_MESSAGES = LINUX_ACCESSIBILITY_BUSES.map((bus) =>
 ).join(" | ");
 
 /** The validator's fail-closed result (the house shape). */
-export type LinuxEnvironmentValidation =
-  | { ok: true }
-  | { ok: false; errors: string[] };
+export type LinuxEnvironmentValidation = { ok: true } | { ok: false; errors: string[] };
 
 // ---- internal helpers (module-level; NOT re-exported by src/index.ts) --------------
 

@@ -165,10 +165,7 @@ export function emitObservationEvidence(
         `context.targetId must be a non-empty string (observed: ${preview(context.targetId)})`,
       );
     }
-    if (
-      typeof context.reconstructionId !== "string" ||
-      context.reconstructionId.length === 0
-    ) {
+    if (typeof context.reconstructionId !== "string" || context.reconstructionId.length === 0) {
       errors.push(
         `context.reconstructionId must be a non-empty string (observed: ${preview(context.reconstructionId)})`,
       );

@@ -82,9 +82,7 @@ const PACKAGING_FORMATS_FOR_MESSAGES = LINUX_PACKAGING_FORMATS.map((format) =>
 ).join(" | ");
 
 /** The validator's fail-closed result (the house shape). */
-export type LinuxSynthesisTargetValidation =
-  | { ok: true }
-  | { ok: false; errors: string[] };
+export type LinuxSynthesisTargetValidation = { ok: true } | { ok: false; errors: string[] };
 
 // ---- internal helpers (module-level; NOT re-exported by src/index.ts) --------------
 
