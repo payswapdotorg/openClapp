@@ -188,6 +188,12 @@ importers:
         specifier: workspace:*
         version: link:../clapp-contracts
 
+  packages/clapp-native-android:
+    dependencies:
+      '@clapp/contracts':
+        specifier: workspace:*
+        version: link:../clapp-contracts
+
   packages/clapp-observation:
     dependencies:
       '@clapp/contracts':
