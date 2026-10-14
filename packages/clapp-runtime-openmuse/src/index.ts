@@ -156,6 +156,7 @@ export type {
 // here — the frozen @clapp/observation package is consumed verbatim).
 export type {
   AlignedPageEvidence,
+  AlignedPageSnapshot,
   AlignmentMapping,
   ChannelAlignmentRecord,
   NoRuntimeSourceKind,

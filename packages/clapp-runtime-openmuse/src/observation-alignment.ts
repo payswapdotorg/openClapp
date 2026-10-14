@@ -1,6 +1,20 @@
 import { createHash } from "node:crypto";
 import type { EvidenceClassification, EvidenceRef, ReconstructionSpec } from "@clapp/contracts";
-import type { ClappBrowserPage } from "./handles.ts";
+
+/**
+ * The page snapshot the aligned refs derive from — the structural subset of
+ * `ClappBrowserPage` (and the W1-002 `read()` payload) the alignment reads:
+ * `url`/`title`/`text`/`truncated`. Declared here (rather than importing
+ * `ClappBrowserPage`) so the alignment is parametric over any page snapshot
+ * carrying these four fields, and so this module stays free of the handles
+ * dependency for the pure derivation helpers.
+ */
+export interface AlignedPageSnapshot {
+  url: string;
+  title: string;
+  text: string;
+  truncated: boolean;
+}
 
 /**
  * CLAPP-W3-017 — the observation channel alignment.
@@ -302,7 +316,7 @@ export interface AlignedPageEvidence {
 export function alignPageEvidence(
   spec: ReconstructionSpec,
   entrypoint: string,
-  page: ClappBrowserPage,
+  page: AlignedPageSnapshot,
   capturedAt: string,
 ): AlignedPageEvidence {
   const domTextSource = page.truncated
