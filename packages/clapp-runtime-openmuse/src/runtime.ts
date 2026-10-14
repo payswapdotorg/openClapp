@@ -40,6 +40,13 @@ import {
 import { CLAPP_STAGE_STATE_KEY, CLAPP_STAGES } from "./handler.ts";
 import type { BoundHandles, ClappBrowserSessionHandle, ClappComputerHandle } from "./handles.ts";
 import { bindHandles } from "./handles.ts";
+import {
+  ALIGNED_CHANNEL_KINDS,
+  alignPageEvidence,
+  alignUnavailablePageEvidence,
+  buildChannelAlignment,
+  hasBrowserSessionSeam,
+} from "./observation-alignment.ts";
 
 export interface OpenMuseRuntime {
   observation: ObservationProvider;
@@ -421,6 +428,20 @@ function makeObservationProvider(bound: BoundHandles): ObservationProvider {
      * W1 computes real content digests for captured channels but does not yet
      * persist the bytes (Phase 2 / CLAPP-W1-002 owns durable evidence
      * storage); the bundle environment records this.
+     *
+     * CLAPP-W3-017 — the observation channel alignment: when the bound handle
+     * ALSO provides the W1-002 browser-session seam (`create`/`navigate`/
+     * `read` — the production BrowserService exposes them alongside `observe`;
+     * an observe-only shim does not), the aligned emission additionally
+     * derives the W1-002 `dom-text`/`page-meta` vocabulary from the SAME
+     * `handle.observe()` page snapshot the legacy `page-text` ref came from.
+     * The aligned refs are id- and digest-identical to the W1-002 adapter's
+     * refs for the same capture, so the W2-002 extraction derives the full
+     * model (screens and journeys) instead of the honest sparse baseline. The
+     * legacy-only path (observe-only handle) is byte-identical to the W1-001
+     * era: the frozen W1-001 pin (every observed ref from an observe-only
+     * handle is `page-text`) holds because the aligned emission is gated on
+     * the seam's presence, never on a behavior change the pin could trip.
      */
     async observe(spec, signal) {
       if (!bound.browserSession)
@@ -437,7 +458,13 @@ function makeObservationProvider(bound: BoundHandles): ObservationProvider {
         );
       const owner = spec.authorization.ownerId;
       const handle: ClappBrowserSessionHandle = bound.browserSession;
+      // The capability marker: the aligned emission activates exactly when the
+      // bound handle also provides the W1-002 browser-session seam. The gate is
+      // a fact about the handle, never a second navigation — the aligned refs
+      // derive from the same observe() snapshot the legacy page-text ref did.
+      const aligned = hasBrowserSessionSeam(handle);
       const refs: EvidenceRef[] = [];
+      const entrypointRefs: Record<string, string[]> = {};
       for (const entrypoint of spec.entrypoints) {
         signal?.throwIfAborted();
         if (typeof entrypoint !== "string" || entrypoint.trim() === "")
@@ -446,77 +473,102 @@ function makeObservationProvider(bound: BoundHandles): ObservationProvider {
             "spec",
             "spec.entrypoints must contain non-empty URL strings",
           );
+        // Per-capture linkage (fresh per observe() call) feeds the extraction.
+        const refIdsForEntrypoint: string[] = [];
+        const pushRef = (ref: EvidenceRef): void => {
+          refs.push(ref);
+          if (aligned) refIdsForEntrypoint.push(ref.id);
+        };
         let page: Awaited<ReturnType<ClappBrowserSessionHandle["observe"]>> | undefined;
         try {
           page = await handle.observe(owner, entrypoint);
         } catch (error) {
-          refs.push(
-            unavailableRef(
+          const reason = `the browserSession handle could not observe the entrypoint: ${describeError(error)}`;
+          pushRef(unavailableRef(spec, "page-text", entrypoint, reason));
+          if (aligned) {
+            // Observe failures emit the honest unavailable aligned pair.
+            const pair = alignUnavailablePageEvidence(spec, entrypoint, reason, nowIso());
+            pushRef(pair.domText);
+            pushRef(pair.pageMeta);
+          }
+        }
+        if (page) {
+          pushRef(
+            observedRef(
               spec,
               "page-text",
               entrypoint,
-              `the browserSession handle could not observe the entrypoint: ${describeError(error)}`,
+              new TextEncoder().encode(`${page.title}\n${page.text}`),
             ),
           );
+          if (aligned) {
+            // The aligned page-evidence pair derived from the same snapshot.
+            const pair = alignPageEvidence(spec, entrypoint, page, nowIso());
+            pushRef(pair.domText);
+            pushRef(pair.pageMeta);
+          }
+          const preview = handle.preview;
+          if (typeof preview !== "function") {
+            pushRef(
+              unavailableRef(
+                spec,
+                "screenshot",
+                entrypoint,
+                "the browserSession handle does not provide the preview capability",
+              ),
+            );
+          } else {
+            try {
+              const response = await preview.call(handle, owner, page.sessionId);
+              pushRef(
+                observedRef(
+                  spec,
+                  "screenshot",
+                  entrypoint,
+                  new Uint8Array(await response.arrayBuffer()),
+                ),
+              );
+            } catch (error) {
+              pushRef(
+                unavailableRef(
+                  spec,
+                  "screenshot",
+                  entrypoint,
+                  `the browserSession handle could not capture a screenshot: ${describeError(error)}`,
+                ),
+              );
+            }
+          }
         }
-        if (!page) continue;
-        refs.push(
-          observedRef(
-            spec,
-            "page-text",
-            entrypoint,
-            new TextEncoder().encode(`${page.title}\n${page.text}`),
-          ),
-        );
-        const preview = handle.preview;
-        if (typeof preview !== "function") {
-          refs.push(
-            unavailableRef(
-              spec,
-              "screenshot",
-              entrypoint,
-              "the browserSession handle does not provide the preview capability",
-            ),
-          );
-          continue;
-        }
-        try {
-          const response = await preview.call(handle, owner, page.sessionId);
-          refs.push(
-            observedRef(
-              spec,
-              "screenshot",
-              entrypoint,
-              new Uint8Array(await response.arrayBuffer()),
-            ),
-          );
-        } catch (error) {
-          refs.push(
-            unavailableRef(
-              spec,
-              "screenshot",
-              entrypoint,
-              `the browserSession handle could not capture a screenshot: ${describeError(error)}`,
-            ),
-          );
-        }
+        if (aligned) entrypointRefs[entrypoint] = refIdsForEntrypoint;
       }
       refs.sort((a, b) => a.id.localeCompare(b.id));
       const rootSha256 = sha256Hex(
         JSON.stringify(refs.map((r) => [r.id, r.sha256, r.classification])),
       );
+      const environment: Record<string, unknown> = {
+        runtime: "@clapp/runtime-openmuse",
+        substrate: "openmuse",
+        specVersion: spec.specVersion,
+        entrypoints: spec.entrypoints,
+        channels: ["page-text", "screenshot"],
+        persisted: false,
+      };
+      if (aligned) {
+        // The aligned bundle carries both vocabularies; foreign channels
+        // surface in the channelAlignment.unmapped scan, and the four
+        // W1-002 kinds with no runtime source are disclosed rather than
+        // fabricated as unavailable refs.
+        environment.channels = [...ALIGNED_CHANNEL_KINDS];
+        environment.entrypointRefs = entrypointRefs;
+        environment.channelAlignment = buildChannelAlignment(refs, true);
+        environment.aligned = true;
+      }
       const bundle: EvidenceBundle = {
         id: `clapp-bundle:${rootSha256}`,
         targetId: spec.targetId,
         reconstructionId: spec.reconstructionId,
-        environment: {
-          runtime: "@clapp/runtime-openmuse",
-          substrate: "openmuse",
-          specVersion: spec.specVersion,
-          entrypoints: spec.entrypoints,
-          channels: ["page-text", "screenshot"],
-          persisted: false,
-        },
+        environment,
         refs,
         rootSha256,
       };
