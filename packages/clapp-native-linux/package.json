@@ -1,0 +1,13 @@
+{
+  "name": "@clapp/native-linux",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CLAPP native Linux adapter (ADR-004): the roadmap's final ⬜ block — lane 2 of 5. The five v0.1 components (environment descriptor, observation/evidence/synthesis-target/verification host seams) over the frozen @clapp/contracts surface only. No adapter imports @clapp/intelligence, @clapp/synthesis, @clapp/runtime-openmuse, or any apps/** module — the no-fork law, pinned by an import-discipline test.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@clapp/contracts": "workspace:*"
+  }
+}
