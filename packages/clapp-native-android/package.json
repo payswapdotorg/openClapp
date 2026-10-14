@@ -1,0 +1,13 @@
+{
+  "name": "@clapp/native-android",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CLAPP native Android adapter (ADR-004): the frozen v0.1 five-component contract — environment descriptor, observation adapter, evidence emitter, synthesis target, verification adapter — over the duck-typed host seams, fail-closed validators, honest refusal, content-addressed ndev_ ids. Consumed through @clapp/contracts only.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@clapp/contracts": "workspace:*"
+  }
+}
