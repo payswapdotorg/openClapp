@@ -46,7 +46,7 @@ openClapp
 ├── ⬜ App archetype factory
 │   ├── 🟡 archetype detection (W2-004, wave 5)
 │   ├── ✅ composition planner (W3-009, wave 10)
-│   ├── 🟡 repeated-build benchmarks (W2-009, wave 8 — the M6 comparison-report measurement half)
+│   ├── ✅ repeated-build benchmarks (W2-009 — measurement half wave 8; orchestration half CLAPP-W3-016, wave 16; integrated 780a9b1)
 │   └── ✅ measurable compounding improvement (W2-011, wave 10)
 │
 ├── ✅ Product hardening
