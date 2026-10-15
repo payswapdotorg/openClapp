@@ -194,6 +194,12 @@ importers:
         specifier: workspace:*
         version: link:../clapp-contracts
 
+  packages/clapp-native-ios:
+    dependencies:
+      '@clapp/contracts':
+        specifier: workspace:*
+        version: link:../clapp-contracts
+
   packages/clapp-native-linux:
     dependencies:
       '@clapp/contracts':
