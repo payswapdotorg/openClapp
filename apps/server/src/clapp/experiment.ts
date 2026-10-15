@@ -16,10 +16,8 @@ import {
 // and attached verbatim — this module never calls it directly.
 import { sha256Hex } from "../../../../packages/clapp-observation/src/index.ts";
 import type {
-  ClappTaskContext,
   ClappTaskSnapshot,
   OpenMuseRuntime,
-  StageExecutor,
 } from "../../../../packages/clapp-runtime-openmuse/src/index.ts";
 import {
   CLAPP_STAGES,
@@ -126,8 +124,6 @@ export interface RepeatedBuildExperimentDeps {
   db: Store;
   /** The owner the experiment runs under (owner-scoped catalog writes). */
   owner: string;
-  /** The CLAPP repositories (reads stage tasks + specs for artifact derivation). */
-  repositories: ClappRepositories;
   /**
    * The runtime with the real bound services (the artifact provider the walk
    * driver recorded stage outputs through — the experiment reads them back to
@@ -597,8 +593,8 @@ export async function runRepeatedBuildExperiment(
 
 /**
  * The service-level walk driver factory: creates a walk driver that drives the
- * ten frozen stages through the real service + executor + runtime. The service
- * owns the walk; this module owns the measurement + the experiment + the
+ * ten frozen stages through the real service + worker tick. The service owns
+ * the walk; this module owns the measurement + the experiment + the
  * persistence. Used by the service's `runExperiment` method; tests supply their
  * own walk driver (the W3-013 chain-walk pattern over scripted providers).
  */
@@ -609,18 +605,12 @@ export interface ServiceWalkDriverDeps {
   repositories: ClappRepositories;
   /** The owner the walk runs under. */
   owner: string;
-  /** The real stage executor (drives the chain stages). */
-  executor: StageExecutor;
-  /** The runtime with the real bound services. */
-  runtime: OpenMuseRuntime;
   /**
    * Drives one tick of the substrate worker (leases + executes one pending
    * task). The service's `runExperiment` method supplies this from the
    * production worker; tests supply it from a dedicated TaskWorker.
    */
   tick: () => Promise<void>;
-  /** A context factory for the stage executor (the W1-001 ClappTaskContext). */
-  context: () => ClappTaskContext;
 }
 
 /**
