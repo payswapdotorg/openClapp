@@ -51,5 +51,28 @@ export function clappRoutes(
     const controlAction: ClappControlAction = action;
     return c.json(await service.control(c.get("owner"), c.req.param("id"), controlAction));
   });
+  // CLAPP-W3-016: the repeated-build experiment route surface.
+  app.post("/experiments/repeated-build", async (c) => {
+    const body = z
+      .object({
+        spec: z.record(z.string(), z.unknown()),
+        benchmarkId: z.string().min(1),
+        learningEnabled: z.boolean().optional(),
+      })
+      .parse(await c.req.json());
+    const result = await service.runExperiment(
+      c.get("owner"),
+      body.spec,
+      body.benchmarkId,
+      body.learningEnabled !== undefined ? { learningEnabled: body.learningEnabled } : {},
+    );
+    return c.json(result, 201);
+  });
+  app.get("/experiments", async (c) => c.json(await service.listExperiments(c.get("owner"))));
+  app.get("/experiments/:id", async (c) => {
+    const row = await service.getExperiment(c.get("owner"), c.req.param("id"));
+    if (row === null) return c.json({ error: "experiment report not found" }, 404);
+    return c.json(row);
+  });
   return app;
 }

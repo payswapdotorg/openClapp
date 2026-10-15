@@ -85,17 +85,31 @@ export async function createApp(
       {},
     ),
     clappRepositories = createClappRepositories(db),
+    clappPackageStore = createInMemoryPackageStore(),
+    clappReadTasks = createClappReadTasks(db),
     clappService = createClappService({
       db,
       agent,
       runtime: clappRuntime,
       repositories: clappRepositories,
+      // CLAPP-W3-016: the experiment-runner deps — the same runtime, readTasks,
+      // packageStore and worker tick the chain already uses, wired so the
+      // service's runExperiment method can drive two walks + the W2-011
+      // compounding experiment end-to-end. The tick closure captures
+      // agent.worker, which is installed with the CLAPP handler below before
+      // any experiment runs.
+      experiment: {
+        runtime: clappRuntime,
+        readTasks: clappReadTasks,
+        packageStore: clappPackageStore,
+        tick: () => agent.worker.tick(),
+      },
     }),
     clappExecutor = createRealStageExecutor({
       readSpec: clappRepositories.findSpec,
-      readTasks: createClappReadTasks(db),
+      readTasks: clappReadTasks,
       authorizationStore: createClappAuthorizationStore(db),
-      packageStore: createInMemoryPackageStore(),
+      packageStore: clappPackageStore,
       fallback: createSkeletonStageExecutor({
         readSpec: clappRepositories.findSpec,
       }).executor,

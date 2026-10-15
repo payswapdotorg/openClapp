@@ -4,6 +4,11 @@ import type {
   ClappStage,
   ReconstructionSpec,
 } from "../../../../packages/clapp-contracts/src/index.ts";
+import type { PackageStore } from "../../../../packages/clapp-intelligence/src/index.ts";
+import type {
+  ClappTaskSnapshot,
+  OpenMuseRuntime,
+} from "../../../../packages/clapp-runtime-openmuse/src/index.ts";
 import {
   type ClappFallbackHandler,
   type ClappRunState,
@@ -17,6 +22,16 @@ import type { AgentTask } from "../../../../packages/domain/src/agent.ts";
 import type { Store } from "../db.ts";
 import type { AgentService } from "../engine/service.ts";
 import { AppError } from "../errors.ts";
+import {
+  type ClappLearningCatalogRow,
+  getLearningReport,
+  listLearningReports,
+} from "./catalog-writers.ts";
+import {
+  createServiceWalkDriver,
+  type RepeatedBuildExperimentResult,
+  runRepeatedBuildExperiment,
+} from "./experiment.ts";
 import {
   type ClappArtifactRecord,
   type ClappReconstructionRow,
@@ -81,6 +96,14 @@ export interface ClappListEntry {
   complete: boolean;
 }
 
+/** Options for {@link ClappService.runExperiment}. */
+export interface ClappRunExperimentOptions {
+  /** Whether learning was enabled for the rebuild (the composition plan is passed). Defaults to true. */
+  learningEnabled?: boolean;
+  /** The pinned clock (the experiment's verifiedAt). */
+  now?: () => number;
+}
+
 /** The public service surface the routes (and tests) consume. */
 export interface ClappService {
   createReconstruction(owner: string, spec: unknown): Promise<ClappCreateResult>;
@@ -92,6 +115,40 @@ export interface ClappService {
     action: ClappControlAction,
   ): Promise<ClappControlResult>;
   list(owner: string): Promise<ClappListEntry[]>;
+  /**
+   * Runs the repeated-build experiment end-to-end (CLAPP-W3-016): two chain
+   * walks + the W2-009 comparison + the W2-011 compounding experiment, with
+   * the report persisted durably through the W2-013 catalog-writers.
+   * Unavailable when the experiment deps were not wired into the service.
+   */
+  runExperiment(
+    owner: string,
+    spec: unknown,
+    benchmarkId: string,
+    options?: ClappRunExperimentOptions,
+  ): Promise<RepeatedBuildExperimentResult>;
+  /** Retrieves one stored experiment/comparison report by its content-addressed id, or null. */
+  getExperiment(owner: string, id: string): Promise<ClappLearningCatalogRow | null>;
+  /** Lists the owner's stored experiment/comparison reports, most recently updated first. */
+  listExperiments(owner: string): Promise<ClappLearningCatalogRow[]>;
+}
+
+/**
+ * The experiment-runner deps (CLAPP-W3-016). When present, the service's
+ * `runExperiment` method is available; when absent, it throws the honest
+ * "experiment deps not wired" error. The app composition (app.ts) wires these
+ * from the same executor + runtime + packageStore + readTasks + worker tick
+ * the chain already uses.
+ */
+export interface ClappExperimentServiceDeps {
+  /** The runtime with the real bound services (the artifact provider). */
+  runtime: OpenMuseRuntime;
+  /** Reads the durable task chain for one reconstruction. */
+  readTasks: (reconstructionId: string) => Promise<ClappTaskSnapshot[]>;
+  /** The shared package store backing the promote stage's registry. */
+  packageStore: PackageStore;
+  /** Drives one tick of the substrate worker (leases + executes one pending task). */
+  tick: () => Promise<void>;
 }
 
 export interface ClappServiceDeps {
@@ -112,6 +169,12 @@ export interface ClappServiceDeps {
   runtime: unknown;
   /** The owner-scoped CLAPP repositories. */
   repositories: ClappRepositories;
+  /**
+   * Optional: the experiment-runner deps (CLAPP-W3-016). When present, the
+   * service's `runExperiment` method runs the repeated-build experiment
+   * end-to-end; when absent, it throws the honest "not wired" error.
+   */
+  experiment?: ClappExperimentServiceDeps;
 }
 
 // ---------------------------------------------------------------------------
@@ -323,7 +386,7 @@ export function createClappService(deps: ClappServiceDeps): ClappService {
     return { row, tasks };
   };
 
-  return {
+  const service: ClappService = {
     async createReconstruction(owner, spec) {
       const validated = validateSpec(owner, spec);
       const id = mintReconstructionId();
@@ -465,5 +528,50 @@ export function createClappService(deps: ClappServiceDeps): ClappService {
         };
       });
     },
+
+    async runExperiment(owner, spec, benchmarkId, options) {
+      const experimentDeps = deps.experiment;
+      if (experimentDeps === undefined)
+        throw new AppError(
+          "the repeated-build experiment is not wired into this service (the experiment deps were not supplied); refusing to run a half-composed experiment",
+          503,
+        );
+      // Validate the spec first (fail closed with precise errors, exactly like
+      // createReconstruction). The walk driver re-validates when it creates
+      // each reconstruction; this early check gives the caller the 422 before
+      // any walk begins.
+      const validated = validateSpec(owner, spec);
+      if (typeof benchmarkId !== "string" || benchmarkId.trim().length === 0)
+        throw new AppError("the benchmark id must be a non-empty string", 422);
+      const walk = createServiceWalkDriver({
+        service,
+        repositories,
+        owner,
+        tick: experimentDeps.tick,
+      });
+      return runRepeatedBuildExperiment({
+        db,
+        owner,
+        runtime: experimentDeps.runtime,
+        readTasks: experimentDeps.readTasks,
+        packageStore: experimentDeps.packageStore,
+        walk,
+        spec: validated,
+        benchmarkId,
+        ...(options?.learningEnabled !== undefined
+          ? { learningEnabled: options.learningEnabled }
+          : {}),
+        ...(options?.now !== undefined ? { now: options.now } : {}),
+      });
+    },
+
+    async getExperiment(owner, id) {
+      return getLearningReport(db, owner, id);
+    },
+
+    async listExperiments(owner) {
+      return listLearningReports(db, owner);
+    },
   };
+  return service;
 }
