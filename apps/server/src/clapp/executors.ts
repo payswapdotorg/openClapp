@@ -8,6 +8,7 @@ import type {
   SynthesisPlan,
 } from "../../../../packages/clapp-contracts/src/index.ts";
 import {
+  buildCompatGraph,
   classifyFromIr,
   composeExploredIr,
   createPackageRegistry,
@@ -38,6 +39,7 @@ import {
   type StageExecutorResult,
 } from "../../../../packages/clapp-runtime-openmuse/src/index.ts";
 import type {
+  CompositionPlan,
   GeneratedApp,
   PairedJourney,
   PairedSide,
@@ -49,6 +51,7 @@ import {
   digestE2eAcceptance,
   generateCandidateApp,
   materializeCandidate,
+  planComposition,
   planSynthesisApp,
   runGeneratedCandidateBuild,
   runPairedSuite,
@@ -638,10 +641,41 @@ async function readModelIr(
 }
 
 /**
- * The plan stage: the REAL W3-001 `planSynthesisApp` (no package ids — the
- * retrieval lane is not wired into the chain; the planner records the honest
- * derived assumption itself) validated by the REAL `validateSynthesisPlan`,
- * carried canonically through `serializeSynthesisPlan`.
+ * The plan stage's composition record: the W3-009 `planComposition` output the
+ * stage derived over the registry snapshot, carried verbatim on a SECOND
+ * stage-output artifact (the first artifact is the canonical SynthesisPlan
+ * serialization, unchanged — the chain's downstream stages read it through
+ * {@link readPlan}). The record carries the composition plan's own status,
+ * packageIds, and — when composed — its selections, notes and digest, so the
+ * experiment runner (W3-016) and any future retrieval-lane consumer can read
+ * exactly what the planner received. An empty registry or an honest abstention
+ * yields the empty/abstained plan recorded verbatim — never a fabricated set.
+ */
+export interface PlanStageCompositionRecord {
+  /** The W3-009 composition plan, verbatim (composed, fallback or abstained). */
+  plan: CompositionPlan;
+  /** The archetype verdict the W2-004 classifier emitted (the planner's input). */
+  archetypeLabel: string;
+  /** The package policy the planner applied (the spec's own synthesis.packagePolicy). */
+  packagePolicy: ReconstructionSpec["synthesis"]["packagePolicy"];
+  /** The count of packages in the registry snapshot the planner read. */
+  registrySnapshotSize: number;
+}
+
+/**
+ * The plan stage: the REAL W3-001 `planSynthesisApp` fed the composed package
+ * set from the REAL W3-009 `planComposition` over the registry snapshot the
+ * stage reads through the frozen W2-005 registry (the retrieval lane W3-013
+ * left open). The W2-004 classifier derives the archetype verdict; the W2-007
+ * `buildCompatGraph` derives the compatibility graph over the snapshot; the
+ * W3-009 planner derives the composition plan under the spec's own
+ * `synthesis.packagePolicy`; and the plan's `packageIds` feed
+ * `planSynthesisApp`'s synthesis inputs. An empty registry or an honest
+ * abstention yields the empty/abstained composed set recorded verbatim — the
+ * plan proceeds exactly as today (no fabrication), and the retrieval record
+ * lands on a second stage-output artifact alongside the canonical plan. The
+ * plan is validated by the REAL `validateSynthesisPlan`, carried canonically
+ * through `serializeSynthesisPlan`.
  */
 async function executePlan(
   deps: RealStageExecutorDeps,
@@ -654,14 +688,44 @@ async function executePlan(
     return unavailable(
       `the model stage's Behavioral IR failed validation: ${(model.errors ?? []).join("; ")}; refusing to plan over an invalid model`,
     );
-  const plan = await planSynthesisApp(spec, model.ir, []);
+
+  // The retrieval lane: the W2-004 verdict, the W2-007 graph over the W2-005
+  // registry snapshot, the W3-009 composition plan under the spec's own policy.
+  // An empty registry yields an abstained/fallback plan with empty packageIds —
+  // the plan proceeds exactly as today (no fabrication). A structural failure
+  // (a malformed registry document) fails closed honestly.
+  const archetypeVerdict = classifyFromIr({ ir: model.ir });
+  const registry = createPackageRegistry(deps.packageStore);
+  const snapshot = registry.list();
+  let composition: CompositionPlan;
+  try {
+    const graph = buildCompatGraph(snapshot);
+    composition = planComposition({
+      verdict: { label: archetypeVerdict.label, confidence: archetypeVerdict.confidence },
+      packages: snapshot,
+      graph,
+      packagePolicy: spec.synthesis.packagePolicy,
+    });
+  } catch (error) {
+    return unavailable(
+      `the plan stage's retrieval lane failed to derive a composition plan over the registry snapshot (${snapshot.length} package(s)): ${describeError(error)}; refusing to plan over an untrusted registry`,
+    );
+  }
+
+  const plan = await planSynthesisApp(spec, model.ir, composition.packageIds);
   const validation = validateSynthesisPlan(plan);
   if (!validation.ok)
     return unavailable(
       `the synthesis plan the real planner derived failed structural validation: ${validation.errors.join("; ")}; failing closed`,
     );
-  const reference = await putStagePayload(providers, input, spec, serializeSynthesisPlan(plan));
-  return { outputArtifactIds: [reference.id] };
+  const planReference = await putStagePayload(providers, input, spec, serializeSynthesisPlan(plan));
+  const compositionReference = await putStagePayload(providers, input, spec, {
+    plan: composition,
+    archetypeLabel: archetypeVerdict.label,
+    packagePolicy: spec.synthesis.packagePolicy,
+    registrySnapshotSize: snapshot.length,
+  } satisfies PlanStageCompositionRecord);
+  return { outputArtifactIds: [planReference.id, compositionReference.id] };
 }
 
 /** Reads the plan stage's canonical text and validates it with the real deserializer. */
@@ -681,6 +745,44 @@ async function readPlan(
       `the plan stage's artifact failed plan validation: ${result.errors.join("; ")}`,
     );
   return result.plan;
+}
+
+/**
+ * Reads the plan stage's composition record (the SECOND output artifact),
+ * carrying the W3-009 composition plan the retrieval lane derived. Returns
+ * `undefined` when the plan stage recorded only one artifact (the pre-W3-016
+ * shape, or a stage that abstained before the retrieval lane landed) — the
+ * caller treats that as the honest empty composition. The record's `plan`
+ * field is the verbatim {@link CompositionPlan} (composed, fallback or
+ * abstained); its `packageIds` are exactly what `planSynthesisApp` received.
+ */
+export async function readPlanComposition(
+  deps: RealStageExecutorDeps,
+  providers: OpenMuseRuntime,
+  input: ClappTaskInput,
+): Promise<PlanStageCompositionRecord | undefined> {
+  const ids = await priorArtifactIds(deps, input.reconstructionId, "plan");
+  if (ids[1] === undefined) return undefined;
+  const bytes = await providers.artifacts.get(ids[1]);
+  const payload = await decodeStagePayload(bytes);
+  if (payload.reconstructionId !== input.reconstructionId)
+    throw new Error(
+      `the plan stage's composition artifact belongs to reconstruction "${payload.reconstructionId}" but the chain is "${input.reconstructionId}"; durable state is inconsistent`,
+    );
+  const record = payload.output as Partial<PlanStageCompositionRecord>;
+  if (
+    typeof record !== "object" ||
+    record === null ||
+    typeof record.plan !== "object" ||
+    record.plan === null ||
+    typeof record.archetypeLabel !== "string" ||
+    typeof record.packagePolicy !== "string" ||
+    typeof record.registrySnapshotSize !== "number"
+  )
+    throw new Error(
+      "the plan stage's second artifact is not a composition record (plan/archetypeLabel/packagePolicy/registrySnapshotSize missing)",
+    );
+  return record as PlanStageCompositionRecord;
 }
 
 // ---------------------------------------------------------------------------
