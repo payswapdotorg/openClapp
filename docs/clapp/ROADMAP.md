@@ -61,7 +61,7 @@ openClapp
     ├── ✅ Linux (CLAPP-NATIVE-LINUX, wave 15; integrated 794eb23)
     ├── ⬜ Windows
     ├── ⬜ macOS
-    └── ⬜ iOS
+    └── ✅ iOS (CLAPP-NATIVE-IOS, wave 15 re-land; integrated 13b7f78)
 ```
 
 ## Gates
