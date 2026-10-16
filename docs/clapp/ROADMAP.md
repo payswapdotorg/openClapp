@@ -56,7 +56,8 @@ openClapp
 │   ├── ✅ audit/retention (W1-011, wave 10)
 │   └── ✅ export/deployment (W3-010, wave 10)
 │
-└── ⬜ Native adapters
+├── ✅ Desktop distribution (operator-requested CLAPP-DESKTOP, wave 17 — the product as an installable Ubuntu desktop app: Electron shell + bundled server + web export, .deb + AppImage; release v0.1.0)
+├── ⬜ Native adapters
     ├── ✅ Android (CLAPP-NATIVE-ANDROID, wave 15; integrated 0e6019f)
     ├── ✅ Linux (CLAPP-NATIVE-LINUX, wave 15; integrated 794eb23)
     ├── ⬜ Windows

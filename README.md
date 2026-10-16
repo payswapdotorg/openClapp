@@ -8,6 +8,10 @@ CLAPP reuses OpenMuse for durable tasks, browser/computer execution, files, appr
 
 > The inherited OpenMuse documentation below describes the substrate. CLAPP-specific architecture and work instructions live under [docs/clapp](docs/clapp/README.md).
 
+## Desktop app (Ubuntu)
+
+The product ships as an installable desktop app — the CLAPP shell (server + web app) bundled into one local application, no system Node.js required. From the [releases page](https://github.com/payswapdotorg/openClapp/releases), download the `.deb` (`sudo apt install ./OpenClapp_0.1.0_amd64.deb`) or the `.AppImage` (`chmod +x` and run). It starts in sample mode out of the box; your own keys go in `~/.config/openclapp/desktop.env`. Build and packaging details: [apps/desktop/README.md](apps/desktop/README.md).
+
 
   <div align="center">
 
