@@ -1,0 +1,66 @@
+{
+  "name": "@openclapp/desktop",
+  "productName": "OpenClapp",
+  "version": "0.1.0",
+  "description": "OpenClapp desktop \u2014 the CLAPP application-intelligence layer on the OpenMuse runtime, as a local desktop app.",
+  "license": "MIT",
+  "author": "payswapdotorg",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "prepare": "node prepare-resources.js",
+    "dist": "node prepare-resources.js && electron-builder --linux deb appimage"
+  },
+  "devDependencies": {
+    "electron": "44.8.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "org.payswapdotorg.openclapp",
+    "productName": "OpenClapp",
+    "copyright": "MIT License",
+    "asar": true,
+    "files": [
+      "main.js",
+      "preload.js",
+      "error.html",
+      "LICENSE",
+      "icons/icon.png"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "."
+      }
+    ],
+    "linux": {
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "icon": "icons/icon.png"
+    },
+    "deb": {
+      "artifactName": "OpenClapp_${version}_${arch}.${ext}",
+      "depends": [],
+      "maintainer": "payswapdotorg"
+    },
+    "appImage": {
+      "artifactName": "OpenClapp-${version}-${arch}.${ext}"
+    },
+    "executableName": "openclapp"
+  },
+  "homepage": "https://github.com/payswapdotorg/openClapp#readme"
+}

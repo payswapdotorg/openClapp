@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OpenClapp — server problem</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; font: 14px/1.55 system-ui, sans-serif; padding: 32px;
+         max-width: 780px; margin-inline: auto; }
+  h1 { font-size: 19px; margin: 0 0 6px; }
+  p { margin: 6px 0; }
+  code { background: rgba(127,127,127,.14); padding: 1px 5px; border-radius: 4px;
+         font-size: 12.5px; }
+  pre { background: rgba(127,127,127,.10); border: 1px solid rgba(127,127,127,.25);
+        border-radius: 8px; padding: 12px; overflow: auto; max-height: 40vh;
+        font-size: 12px; white-space: pre-wrap; }
+  button { font: inherit; padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(127,127,127,.5);
+        background: #e8e4dc; cursor: pointer; margin-top: 10px; }
+  button:hover { background: #ddd8ce; }
+  @media (prefers-color-scheme: dark) { button { background: #3a3a3a; color: #eee; } }
+</style>
+</head>
+<body>
+  <h1>The OpenClapp server stopped</h1>
+  <p>The local API server that powers this app is no longer running. Your data
+  is safe on disk. You can try to start it again below.</p>
+  <p>Problem: <code id="kind">unknown</code></p>
+  <button type="button" id="restart">Restart the server</button>
+  <h2 style="font-size:15px;margin-top:24px;">Server log (last lines)</h2>
+  <pre id="log">no log available</pre>
+  <script>
+    const qs = new URLSearchParams(location.search);
+    document.getElementById("kind").textContent = qs.get("kind") || "unknown";
+    const log = qs.get("tail");
+    if (log) document.getElementById("log").textContent = log;
+    document.getElementById("restart").addEventListener("click", async () => {
+      const btn = document.getElementById("restart");
+      btn.disabled = true; btn.textContent = "Starting…";
+      try {
+        if (window.openclapp) await window.openclapp.restartServer();
+        else location.reload();
+      } catch {
+        btn.disabled = false; btn.textContent = "Restart the server";
+      }
+    });
+  </script>
+</body>
+</html>
